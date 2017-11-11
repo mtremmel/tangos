@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from pyramid.view import view_config
 import pyramid.httpexceptions as exc
 import tangos
-from . import halo_from_request
+from . import halo_from_request, escape_slashes
 
 def halo_later_earlier(request, rel='later'):
     halo = halo_from_request(request)
@@ -30,8 +30,8 @@ def halo_later_earlier(request, rel='later'):
         except tangos.live_calculation.NoResultsError:
             pass
 
-    raise exc.HTTPFound(request.route_url("halo_view", simid=halo.timestep.simulation.basename,
-                                          timestepid=halo.timestep.extension,
+    raise exc.HTTPFound(request.route_url("halo_view", simid=escape_slashes(halo.timestep.simulation.basename),
+                                          timestepid=escape_slashes(halo.timestep.extension),
                                           halonumber=halo.basename))
 
 

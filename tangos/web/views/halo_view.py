@@ -6,7 +6,7 @@ import numpy as np
 from .halo_data import format_number, _relative_description
 import sqlalchemy, sqlalchemy.orm
 from six.moves import zip
-from . import halo_from_request
+from . import halo_from_request, escape_slashes
 
 class TimestepInfo(object):
     def __init__(self, ts):
@@ -21,8 +21,8 @@ class TimeLinks(object):
         ns = ['inf',10,1,1,10,'inf']
 
         urls = [
-            request.route_url(r, simid=halo.timestep.simulation.basename,
-                              timestepid=halo.timestep.extension,
+            request.route_url(r, simid=escape_slashes(halo.timestep.simulation.basename),
+                              timestepid=escape_slashes(halo.timestep.extension),
                               halonumber=halo.basename,
                               n=n)
             for r,n in zip(route_names, ns)
@@ -73,8 +73,8 @@ def format_property_data(property):
 class SimulationInfo(object):
     def __init__(self, sim, request):
         self.name = sim.basename
-        self.url = request.route_url('halo_in',simid=request.matchdict['simid'],
-                                            timestepid=request.matchdict['timestepid'],
+        self.url = request.route_url('halo_in',simid=escape_slashes(request.matchdict['simid']),
+                                            timestepid=escape_slashes(request.matchdict['timestepid']),
                                             halonumber=request.matchdict['halonumber'],
                                             n=sim.basename)
 
@@ -85,8 +85,8 @@ class HaloLinkInfo(object):
         halo_dest = link.halo_to
         weight_text = "( %.2f)"%link.weight if link.weight else ""
         self.name = "%s%s: %s"%(link.relation.text,weight_text,_relative_description(halo_source, halo_dest))
-        self.url = request.route_url('halo_view', simid=halo_dest.timestep.simulation.basename,
-                                     timestepid=halo_dest.timestep.extension,
+        self.url = request.route_url('halo_view', simid=escape_slashes(halo_dest.timestep.simulation.basename),
+                                     timestepid=escape_slashes(halo_dest.timestep.extension),
                                      halonumber=halo_dest.basename)
 
 def all_simulations(request):
@@ -120,12 +120,12 @@ def halo_view(request):
             'properties': default_properties(halo),
             'halo_path': halo.path,
             'finder_id': halo.finder_id,
-            'calculate_url': request.route_url('get_property',simid=request.matchdict['simid'],
-                                            timestepid=request.matchdict['timestepid'],
+            'calculate_url': request.route_url('get_property',simid=escape_slashes(request.matchdict['simid']),
+                                            timestepid=escape_slashes(request.matchdict['timestepid']),
                                             halonumber=request.matchdict['halonumber'],
                                             nameid="")[:-5],
-            'tree_url': request.route_url('merger_tree',simid=request.matchdict['simid'],
-                                            timestepid=request.matchdict['timestepid'],
+            'tree_url': request.route_url('merger_tree',simid=escape_slashes(request.matchdict['simid']),
+                                            timestepid=escape_slashes(request.matchdict['timestepid']),
                                             halonumber=request.matchdict['halonumber']),
             'gather_url': "/%s/%s/"%(sim.basename,ts.extension),
             'cascade_url': "/%s/%s/%d/"%(sim.basename,ts.extension,halo.halo_number)}

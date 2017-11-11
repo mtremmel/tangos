@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from pyramid.view import view_config
-from . import halo_from_request
+from . import halo_from_request, escape_slashes
 import tangos, tangos.relation_finding, tangos.util.consistent_collection as cc
 import time
 import math
@@ -111,8 +111,8 @@ def _get_basic_halo_node(halo, base_halo, depth,  request):
     if len(name) > 4:
         name = ""
     output = {'name': name,
-              'url': request.route_url('halo_view', simid=base_halo.timestep.simulation.basename,
-                                       timestepid=halo.timestep.extension,
+              'url': request.route_url('halo_view', simid=escape_slashes(base_halo.timestep.simulation.basename),
+                                       timestepid=escape_slashes(halo.timestep.extension),
                                        halonumber=halo.basename),
               'nodeclass': nodeclass,
               'moreinfo': moreinfo,

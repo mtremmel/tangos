@@ -4,6 +4,7 @@ from pyramid.view import view_config
 
 import tangos
 from tangos import core
+from . import escape_slashes
 
 
 @view_config(route_name='simulation_list', renderer='../templates/simulation_list.jinja2')
@@ -26,7 +27,7 @@ def simulation_list(request):
             s[1 + ids.index(q.name_id)] = q.data_repr()
 
         simulations.append(s)
-        links.append(request.route_url('simulation_view',simid=x.basename))
+        links.append(request.route_url('simulation_view',simid=escape_slashes(x.basename)))
 
 
     return {'simulations':simulations, 'titles':titles, 'links':links}

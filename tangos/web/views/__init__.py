@@ -15,14 +15,23 @@ def halo_from_request(request):
 def timestep_from_request(request):
     sim = simulation_from_request(request)
     try:
-        ts = tangos.get_timestep(request.matchdict['timestepid'], request.dbsession, sim)
+        ts = tangos.get_timestep(unescape_slashes(request.matchdict['timestepid']), request.dbsession, sim)
     except RuntimeError:
         raise exc.HTTPNotFound()
     return ts
 
 def simulation_from_request(request):
     try:
-        sim = tangos.get_simulation(request.matchdict['simid'], request.dbsession)
+        sim = tangos.get_simulation(unescape_slashes(request.matchdict['simid']), request.dbsession)
     except RuntimeError:
         raise exc.HTTPNotFound()
     return sim
+
+def escape_slashes(string):
+    return string.replace("/","___")
+
+def unescape_slashes(string, for_sql=True):
+    if for_sql:
+        return string.replace("___","%")
+    else:
+        return string.replace("___", "/")

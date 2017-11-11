@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from pyramid.view import view_config
 from sqlalchemy import func
 
-from . import simulation_from_request
+from . import simulation_from_request, escape_slashes
 
 import tangos
 from tangos import core
@@ -24,7 +24,8 @@ def simulation_view(request):
         order_by(tangos.core.timestep.TimeStep.time_gyr.desc()).\
         all()
 
-    timestep_links = [request.route_url('timestep_view',simid=sim.basename,timestepid=timestep.extension)
+    timestep_links = [request.route_url('timestep_view',simid=escape_slashes(sim.basename),
+                                        timestepid=escape_slashes(timestep.extension))
                       for timestep in timesteps]
 
     counts = [c[0] for c in counts]

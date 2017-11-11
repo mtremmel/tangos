@@ -1,3 +1,5 @@
+from .views import unescape_slashes
+
 class BreadCrumbs(object):
     def __init__(self, uri=None, servername="TANGOS"):
         if uri:
@@ -31,9 +33,10 @@ class BreadCrumbs(object):
             if count==1:
                 crumb = self.servername
             if count<len(self.crumbs):
-                links.append('<span class="mono"><a href="' + crumb_uri + '" class="breadcrumbs">' + crumb + '</a></span>')
+                links.append('<span class="mono"><a href="' + crumb_uri + '" class="breadcrumbs">'
+                             + unescape_slashes(crumb, for_sql=False) + '</a></span>')
             else:
-                links.append(crumb)
+                links.append(unescape_slashes(crumb, for_sql=False))
         return links
 
 def breadcrumbs(request):
