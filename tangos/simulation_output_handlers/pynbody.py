@@ -168,21 +168,25 @@ class PynbodyOutputSetHandler(SimulationOutputSetHandler):
 
 
     def _construct_halo_cat(self, ts_extension, object_typetag):
+        f = self.load_timestep(ts_extension)
+        loaded_cats = getattr(f, '_tangos_cached_cats', None)
+
+        if loaded_cats is None:
+            loaded_cats = f._cached_cats = {}
+
+        h = loaded_cats.get(object_typetag, None)
+        if h is None:
+            h = self._construct_halo_cat_without_caching(f, object_typetag)
+            loaded_cats[object_typetag] = h # keeps alive for lifetime of simulation
+        return h
+
+    def _construct_halo_cat_without_caching(self, f, object_typetag):
         if object_typetag!= 'halo':
             raise ValueError("Unknown object type %r" % object_typetag)
-        f = self.load_timestep(ts_extension)
-        # amiga grp halo
-        h = _loaded_halocats.get(id(f), lambda: None)()
-        if h is None:
-            h = f.halos()
-            if isinstance(h, pynbody.halo.SubfindCatalogue):
-                h = f.halos(subs=True)
-            _loaded_halocats[id(f)] = weakref.ref(h)
-            f._db_current_halocat = h # keep alive for lifetime of simulation
-        return h  # pynbody.halo.AmigaGrpCatalogue(f)
-
-
-
+        h = f.halos()
+        if isinstance(h, pynbody.halo.SubfindCatalogue):
+            h = f.halos(subs=True)
+        return h
 
     def match_halos(self, ts1, ts2, halo_min, halo_max,
                     dm_only=False, threshold=0.005, object_typetag='halo'):
@@ -280,8 +284,6 @@ class GadgetSubfindOutputSetHandler(PynbodyOutputSetHandler):
         else:
             return super(GadgetSubfindOutputSetHandler, self).load_object(ts_extension, halo_number, object_typetag, mode)
 
-
-
     def enumerate_timestep_extensions(self):
         base = os.path.join(config.base, self.basename)
         extensions = finding.find(basename=base + "/", patterns=["snapshot_???"])
@@ -289,25 +291,46 @@ class GadgetSubfindOutputSetHandler(PynbodyOutputSetHandler):
             if self._pynbody_can_load_halos_for(e):
                 yield e[len(base)+1:]
 
-
-    def _construct_group_cat(self, ts_extension):
-        f = self.load_timestep(ts_extension)
-        h = _loaded_halocats.get(id(f)+1, lambda: None)()
-        if h is None:
-            h = f.halos()
-            assert isinstance(h, pynbody.halo.SubfindCatalogue)
-            _loaded_halocats[id(f)+1] = weakref.ref(h)
-            f._db_current_groupcat = h  # keep alive for lifetime of simulation
-        return h
-
-    def _construct_halo_cat(self, ts_extension, object_typetag):
+    def _construct_halo_cat_without_caching(self, f, object_typetag):
         if object_typetag== 'halo':
-            return super(GadgetSubfindOutputSetHandler, self)._construct_halo_cat(ts_extension, object_typetag)
+            h = f.halos(subs=True)
         elif object_typetag== 'group':
-            return self._construct_group_cat(ts_extension)
+            h = f.halos(subs=False)
         else:
             raise ValueError("Unknown halo type %r" % object_typetag)
 
+        assert isinstance(h, pynbody.halo.SubfindCatalogue)
+        return h
+
+class EagleLikeHDFOutputSetHandler(PynbodyOutputSetHandler):
+    patterns = ["snap_???_*.*.hdf5"]
+
+    def enumerate_timestep_extensions(self):
+        base = os.path.join(config.base, self.basename)
+        extensions = finding.find(basename=base + "/", patterns=self.patterns)
+        # join together different CPUs
+        extensions_no_cpu = set()
+        for e in extensions:
+            matched_name = re.match("(.*)\.[0-9]+\.hdf5$", e)
+            if matched_name:
+                extensions_no_cpu.add(matched_name.group(1))
+            else:
+                logger.warn("Could not determine the snapshot that file %r belongs to", e)
+
+        for e in extensions_no_cpu:
+            if self._pynbody_can_load_halos_for(e):
+                yield e[len(base)+1:]
+
+    def _construct_halo_cat_without_caching(self, f, object_typetag):
+        if object_typetag == 'halo':
+            h = f.halos(subs=True)
+        elif object_typetag == 'group':
+            h = f.halos(subs=False)
+        else:
+            raise ValueError("Unknown halo type %r" % object_typetag)
+
+        assert isinstance(h, pynbody.halo.GrpCatalogue)
+        return h
 
 
 
