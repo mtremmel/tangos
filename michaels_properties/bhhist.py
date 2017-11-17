@@ -42,7 +42,7 @@ class BHAccAveHistogram(TimeChunkedProperty):
         t_max = properties.timestep.time_gyr
         dt = self.tmax_Gyr/self.nbins
         t_grid = np.arange(0, self.tmax_Gyr+dt, dt)
-        print t_grid
+        #print t_grid
         mdot_grid_n, _ = np.histogram(t_orbit[order],bins=t_grid)
         mdot_grid_sum, _ = np.histogram(t_orbit[order],bins=t_grid,weights=Mdot_orbit[order])
         mdot_grid_ave = mdot_grid_sum/mdot_grid_n.astype(np.float)
