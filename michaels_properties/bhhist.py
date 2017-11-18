@@ -1,5 +1,5 @@
 
-from tangos.properties import HaloProperties, TimeChunkedProperty
+from tangos.properties import HaloProperties, TimeChunkedProperty, LiveHaloProperties
 import numpy as np
 import pynbody
 from tangos_nbodyshop_properties.BH import BHShortenedLog
@@ -55,3 +55,26 @@ class BHAccAveHistogram(TimeChunkedProperty):
         #print Mdot_grid
 
         return mdot_grid_ave[self.store_slice(t_max)]
+
+class BHGalAccHistogram(LiveHaloProperties,TimeChunkedProperty):
+
+    def __init__(self, simulation=None, choose='BH_mdot_ave', minmax='max', bhtype='BH_central'):
+        super(BHGalAccHistogram, self).__init__(simulation)
+        self._maxmin = minmax
+        self._choicep = choose
+        self._bhtype = bhtype
+
+    @classmethod
+    def name(cls):
+        return "bh_mdot_histogram_galaxy"
+
+    def requires_property(self):
+        return []
+
+    def live_calculate(self, halo, *args):
+        try:
+            bh = halo.calculate('bh('+self._choicep+', '+self._maxmin+','+self._bhtype+')')
+        except:
+            return None
+        mdot = bh.calculate('raw(BH_mdot_histogram)')
+        return mdot
