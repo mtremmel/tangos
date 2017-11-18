@@ -73,7 +73,7 @@ class BHGalAccHistogram(LiveHaloProperties,TimeChunkedProperty):
 
     def live_calculate(self, halo, *args):
         try:
-            bh = halo.calculate('bh('+self._choicep+', '+self._maxmin+','+self._bhtype+')')
+            bh = halo.calculate("bh('"+self._choicep+"', '"+self._maxmin+"','"+self._bhtype+"')")
         except:
             return None
         mdot = bh.calculate('raw(BH_mdot_histogram)')
