@@ -322,6 +322,7 @@ class LiveProperty(Calculation):
         self._name = str(tokens[0])
         self._inputs = list(tokens[1:])
         self._evaluation_pattern = '_evaluate_function'
+        self._evaluation_options = []
 
     def __str__(self):
         return self._name + "(" + (",".join(str(x) for x in self._inputs)) + ")"
@@ -351,9 +352,13 @@ class LiveProperty(Calculation):
     def set_evaluation_pattern(self,eval_name):
         self._evaluation_pattern = eval_name
 
+    def set_evaluation_pattern_with_options(self,eval_name,*options):
+        self._evaluation_pattern = eval_name
+        self._evaluation_options = options
+
     def _evaluate(self,halos, input_descriptions, input_values):
         print "in _evaluate", self._name, self._evaluation_pattern
-        return getattr(self,self._evaluation_pattern)(halos, input_descriptions, input_values)
+        return getattr(self,self._evaluation_pattern)(halos, input_descriptions, input_values, *self._evaluation_options)
 
 
     def values_and_description(self, halos):
@@ -390,7 +395,7 @@ class LiveProperty(Calculation):
                 results.append(None)
         return calculator, self._as_1xn_array(results)
 
-    def _evaluate_function_with_reassemble(self, halos, input_descriptions, input_values):
+    def _evaluate_function_with_reassemble(self, halos, input_descriptions, input_values, *options):
         from .. import properties
         print "in evaluate function reassemble", self.name(), type(self)
         sim = consistent_collection.consistent_simulation_from_halos(halos)
@@ -399,7 +404,7 @@ class LiveProperty(Calculation):
         for inputs in zip(halos, *input_values):
             if self._has_required_properties(inputs[0]) and all([x is not None for x in inputs]):
                 if hasattr(calculator,'reassemble'):
-                    results.append(calculator.reassemble(self,inputs[0]))
+                    results.append(calculator.reassemble(self,inputs[0],*options))
                 else:
                     results.append(calculator.live_calculate_named(self.name(), *inputs))
             else:
