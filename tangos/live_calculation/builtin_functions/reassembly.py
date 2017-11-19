@@ -35,6 +35,6 @@ def reassemble_initialisation(input, *options):
             raise TypeError("Options to 'reassemble' must be fixed numbers or strings")
     if isinstance(input, LiveProperty):
         print "setting eval pattern"
-        input.set_evaluation_pattern('_evaluate_function_with_reassemble')
+        input.set_evaluation_pattern('_evaluate_function_with_reassemble', *options_values)
     else:
         input.set_extraction_pattern(extraction_patterns.HaloPropertyValueWithReassemblyOptionsGetter(*options_values))

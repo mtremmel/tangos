@@ -56,25 +56,35 @@ class BHAccAveHistogram(TimeChunkedProperty):
 
         return mdot_grid_ave[self.store_slice(t_max)]
 
-class BHGalAccHistogram(LiveHaloProperties,TimeChunkedProperty):
+class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
 
-    def __init__(self, simulation=None, choose='BH_mdot_ave', minmax='max', bhtype='BH_central'):
-        super(BHGalAccHistogram, self).__init__(simulation)
-        self._maxmin = minmax
-        self._choicep = choose
+    def __init__(self, simulation=None, property='BH_mdot_histogram', operation='max', bhtype='BH_central'):
+        super(BHGalHistogram, self).__init__(simulation)
+        self._operation=operation
+        self._property = property
         self._bhtype = bhtype
 
     @classmethod
     def name(cls):
-        return "bh_mdot_histogram_galaxy"
+        return "bh_histogram_galaxy"
 
     def requires_property(self):
         return []
 
     def live_calculate(self, halo, *args):
-        try:
-            bh = halo.calculate("bh('"+self._choicep+"', '"+self._maxmin+"','"+self._bhtype+"')")
-        except:
-            return None
-        mdot = bh.calculate('raw(BH_mdot_histogram)')
-        return mdot
+        if halo.object_typecode != 0:
+            return np.zeros(100)
+
+        if self._bhtype not in list(halo.keys()):
+            return np.zeros(100)
+
+        if type(halo[self._bhtype]) is list:
+            all_hists = []
+            for bh in halo[self._bhtype]:
+                all_hists.append(bh.calcualte('raw('+self._property+')'))
+            if self._operation=='sum':
+                return np.sum(all_hists,axis=0)
+            if self._operation=='max':
+                return np.max(all_hists,axis=0)
+        else:
+            return halo[self._bhtype].calculate('raw('+self._property+')')
