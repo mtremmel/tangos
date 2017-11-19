@@ -81,7 +81,7 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
         if type(halo[self._bhtype]) is list:
             all_hists = []
             for bh in halo[self._bhtype]:
-                all_hists.append(bh.calcualte('raw('+self._property+')'))
+                all_hists.append(bh.calculate('raw('+self._property+')'))
             if self._operation=='sum':
                 return np.sum(all_hists,axis=0)
             if self._operation=='max':

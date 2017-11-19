@@ -357,20 +357,16 @@ class LiveProperty(Calculation):
         self._evaluation_options = options
 
     def _evaluate(self,halos, input_descriptions, input_values):
-        print "in _evaluate", self._name, self._evaluation_pattern
         return getattr(self,self._evaluation_pattern)(halos, input_descriptions, input_values, *self._evaluation_options)
 
 
     def values_and_description(self, halos):
-        print "in values and desc", self._name, self._inputs
         input_values = []
         input_descriptions = []
         for input in range(len(self._inputs)):
             iv, id = self._input_value_and_description(input, halos)
             input_values.append(iv)
             input_descriptions.append(id)
-        if len(input_values)>0:
-            print "still in values and desc", input_values, type(input_descriptions[0])
         calculator, results = self._evaluate(halos, input_descriptions, input_values)
 
         return results, calculator
@@ -384,7 +380,6 @@ class LiveProperty(Calculation):
 
     def _evaluate_function(self, halos, input_descriptions, input_values):
         from .. import properties
-        print "in evaluate function", self.name()
         sim = consistent_collection.consistent_simulation_from_halos(halos)
         results = []
         calculator = properties.providing_class(self.name())(sim, *input_descriptions)
@@ -397,7 +392,6 @@ class LiveProperty(Calculation):
 
     def _evaluate_function_with_reassemble(self, halos, input_descriptions, input_values, *options):
         from .. import properties
-        print "in evaluate function reassemble", self.name(), type(self)
         sim = consistent_collection.consistent_simulation_from_halos(halos)
         results = []
         calculator = properties.providing_class(self.name())(sim, *input_descriptions)

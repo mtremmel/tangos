@@ -239,7 +239,6 @@ class TimeChunkedProperty(HaloProperties):
                                 - if 'raw', return the raw data
         """
 
-        print 'here in reassemble', property, type(property)
         from tangos import relation_finding as rfs
         if reassembly_type=='major':
             return cls._reassemble_using_finding_strategy(property, halo, strategy = rfs.MultiHopMajorProgenitorsStrategy)
@@ -265,7 +264,6 @@ class TimeChunkedProperty(HaloProperties):
 
     @classmethod
     def _reassemble_using_finding_strategy(cls, property, halo, strategy, strategy_kwargs={}):
-        #print "in reassemble finding strat", property, isinstance(property, live_calculation.Calculation)
         if not isinstance(property, live_calculation.Calculation):
             name = property.name.text
             t, stack = halo.calculate_for_descendants("t()", "raw(" + name + ")", strategy=strategy,strategy_kwargs=strategy_kwargs)
