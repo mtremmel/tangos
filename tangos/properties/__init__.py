@@ -5,6 +5,7 @@ import six
 from six.moves import zip
 import importlib
 import warnings
+from .. import live_calculation
 
 class HaloPropertiesMetaClass(type):
     # Present to register new subclasses of HaloProperties, so that subclasses can be dynamically
@@ -220,7 +221,7 @@ class TimeChunkedProperty(HaloProperties):
         return slice(self.bin_index(time-self.minimum_store_Gyr), self.bin_index(time))
 
     @classmethod
-    def reassemble(cls, property, reassembly_type='major'):
+    def reassemble(cls, property, halo, reassembly_type='major'):
         """Reassemble a histogram by suitable treatment of the merger tree leading up to the current halo.
 
         This function is normally called by the framework (see Halo.get_data_with_reassembly_options) and you would
@@ -238,15 +239,15 @@ class TimeChunkedProperty(HaloProperties):
                                 - if 'raw', return the raw data
         """
 
+        print 'here in reassemble', property, type(property)
         from tangos import relation_finding as rfs
-
         if reassembly_type=='major':
-            return cls._reassemble_using_finding_strategy(property, strategy = rfs.MultiHopMajorProgenitorsStrategy)
+            return cls._reassemble_using_finding_strategy(property, halo, strategy = rfs.MultiHopMajorProgenitorsStrategy)
         elif reassembly_type=='major_across_simulations':
-            return cls._reassemble_using_finding_strategy(property, strategy = rfs.MultiHopMajorProgenitorsStrategy,
+            return cls._reassemble_using_finding_strategy(property, halo, strategy = rfs.MultiHopMajorProgenitorsStrategy,
                                                           strategy_kwargs = {'target': None})
         elif reassembly_type=='sum':
-            return cls._reassemble_using_finding_strategy(property, strategy = rfs.MultiHopAllProgenitorsStrategy)
+            return cls._reassemble_using_finding_strategy(property, halo, strategy = rfs.MultiHopAllProgenitorsStrategy)
         elif reassembly_type=='place':
             return cls._place_data(property.halo.timestep.time_gyr, property.data_raw)
         elif reassembly_type=='raw':
@@ -263,10 +264,14 @@ class TimeChunkedProperty(HaloProperties):
         return final
 
     @classmethod
-    def _reassemble_using_finding_strategy(cls, property, strategy, strategy_kwargs={}):
-        name = property.name.text
-        halo = property.halo
-        t, stack = halo.calculate_for_descendants("t()", "raw(" + name + ")", strategy=strategy, strategy_kwargs=strategy_kwargs)
+    def _reassemble_using_finding_strategy(cls, property, halo, strategy, strategy_kwargs={}):
+        #print "in reassemble finding strat", property, isinstance(property, live_calculation.Calculation)
+        if not isinstance(property, live_calculation.Calculation):
+            name = property.name.text
+            t, stack = halo.calculate_for_descendants("t()", "raw(" + name + ")", strategy=strategy,strategy_kwargs=strategy_kwargs)
+        else:
+            name = property.name()
+            t, stack = halo.calculate_for_descendants("t()", "raw(" + name + "())", strategy=strategy, strategy_kwargs=strategy_kwargs)
         final = np.zeros(cls.bin_index(t[0]))
         previous_time = -1
         for t_i, hist_i in zip(t, stack):
