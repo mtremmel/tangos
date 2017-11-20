@@ -4,7 +4,7 @@ import numpy as np
 import pynbody
 from tangos.properties.centring import centred_calculation
 
-class FlowProfile(SphericalRegionHaloProperties):
+class NewFlowProfile(SphericalRegionHaloProperties):
     #_xmax = 100.0
     _threshold_vel = 20.0
 
