@@ -47,7 +47,7 @@ class NewFlowProfile(SphericalRegionHaloProperties):
 
     @centred_calculation
     def calculate(self, halo, properties):
-        with pynbody.analysis.vel_center(halo):
+        with pynbody.analysis.halo.vel_center(halo):
             halo.gas['vr2'] = halo.gas['vr'] ** 2
             inflow_Mdot, inflow_vel, inflow_vel2, inflow_temp = self.profile_calculation(halo.ancestor.gas, -self._threshold_vel, properties['max_radius'])
             outflow_Mdot, outflow_vel, outflow_vel2, outflow_temp = self.profile_calculation(halo.ancestor.gas, self._threshold_vel,properties['max_radius'])
