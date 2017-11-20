@@ -17,7 +17,7 @@ class FlowProfile(SphericalRegionHaloProperties):
         return "gas_inflow_Mdot", "gas_outflow_Mdot", \
                "gas_inflow_vel", "gas_outflow_vel", \
                "gas_inflow_vel2", "gas_outflow_vel2", \
-               "gas_inflow_temp", "gas_outflow_temp", \
+               "gas_inflow_temp", "gas_outflow_temp"
 #               "inflow_Mdot_dm", "outflow_Mdot_dm", \
 #               "inflow_vel_dm", "outflow_vel_dm", \
 #               "inflow_vel2_dm", "outflow_vel2_dm"
