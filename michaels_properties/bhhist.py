@@ -73,18 +73,32 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
 
     def live_calculate(self, halo, *args):
         if halo.object_typecode != 0:
-            return np.zeros(100)
+            return None
 
         if self._bhtype not in list(halo.keys()):
-            return np.zeros(100)
+            mdot = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
+            return mdot
 
         if type(halo[self._bhtype]) is list:
             all_hists = []
             for bh in halo[self._bhtype]:
-                all_hists.append(bh.calculate('raw('+self._property+')'))
+                if self._property not in list(bh.keys()):
+                    mdot_part = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
+                else:
+                    mdot_part = bh.calculate('raw('+self._property+')')
+                all_hists.append(mdot_part)
+            if len(all_hists) != len(halo[self._bhtype]):
+                raise RuntimeError, "bad size! "+str(halo)
             if self._operation=='sum':
-                return np.sum(all_hists,axis=0)
+                print "in sum", self._operation
+                mdot =  np.sum(all_hists,axis=0)
             if self._operation=='max':
-                return np.max(all_hists,axis=0)
+                print "in max", self._operation
+                mdot =  np.max(all_hists,axis=0)
         else:
-            return halo[self._bhtype].calculate('raw('+self._property+')')
+            bh = halo[self._bhtype]
+            if self._property not in list(bh.keys()):
+                mdot = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
+            else:
+                mdot = bh.calculate('raw('+self._property+')')
+        return mdot
