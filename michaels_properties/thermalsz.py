@@ -27,19 +27,19 @@ class ComptonImage(HaloProperties):
         return 500.0
 
     def requires_property(self):
-        return ["SSC"]
+        return ["shrink_center"]
 
     def region_specification(self, db_data):
         import pynbody
-        return pynbody.filt.Sphere("1 Mpc", db_data['SSC'])
+        return pynbody.filt.Sphere("1 Mpc", db_data['shrink_center'])
 
     def calculate(self, particle_data, properties):
-        particle_data['pos']-=properties['SSC']
+        particle_data['pos']-=properties['shrink_center']
         try:
             size = self.plot_extent()
             g = self._render_projected(particle_data.gas, size)
         finally:
-            particle_data['pos']+=properties['SSC']
+            particle_data['pos']+=properties['shrink_center']
         return g
 
     def _render_projected(self, f, size):
