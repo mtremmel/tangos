@@ -157,17 +157,17 @@ class OldHaloDensityProfile(SphericalRegionHaloProperties):
         delta = existing_properties.get('delta',0.1)
         self.mark_timer('dm')
         dm_a, dm_b = self.rstat(
-            halo.dm, existing_properties["Rvir"], existing_properties["SSC"],delta)
+            halo.dm, existing_properties["max_radius"], existing_properties["shrink_center"],delta)
         self.mark_timer('tot')
         tot_a, tot_b = self.rstat(
-            halo, existing_properties["Rvir"], existing_properties["SSC"],delta)
+            halo, existing_properties["max_radius"], existing_properties["shrink_center"],delta)
         self.mark_timer('gas')
         gas_a, gas_b = self.rstat(
-            halo.gas, existing_properties["Rvir"], existing_properties["SSC"],delta)
+            halo.gas, existing_properties["max_radius"], existing_properties["shrink_center"],delta)
         self.mark_timer('star')
         star_a, star_b = self.rstat(
-            halo.star, existing_properties["Rvir"], existing_properties["SSC"],delta)
+            halo.star, existing_properties["max_radius"], existing_properties["shrink_center"],delta)
         return dm_a, dm_b, tot_a, tot_b, gas_a, gas_b, star_a, star_b
 
     def requires_property(self):
-        return ["SSC", "Rvir"]
+        return ["shrink_center", "max_radius"]
