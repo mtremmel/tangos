@@ -54,7 +54,7 @@ def tcool(rho, T, mu):
 #    return kb.in_units('keV K**-1') * temp
 
 @pynbody.analysis.profile.Profile.profile_property
-def rho_e(self):
+def rho_e_vol(self):
     n_e = np.zeros(self.nbins)
     for i in range(self.nbins):
         subs = self.sim[self.binind[i]]
@@ -62,13 +62,12 @@ def rho_e(self):
         n_e[i] = np.sum(subs.g['ne'] * subs.g['mass'].in_units('m_p'))/self._binsize.in_units('cm**'+str(int(self.ndim)))[i]
     return n_e
 
-
 class GasProfiles(HaloProperties):
     _temp_cut = 1.26e6
-    #_mu = 0.58
+    #_mu = 0.58   Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
     @classmethod
     def name(self):
-        return "Tew_tcut_profile", "Tmw_tcut_profile", "rho_e_tcut_mw_profile", "rho_e_tcut_ew_profile", "tcool_profile", "cool_rate_profile"
+        return "Tew_tcut_profile", "Tmw_tcut_profile","Tmw_profile", "rho_e_tcut_ew_profile", "rho_e_tcut_mw_profile", "rho_e_vol_profile", "tcool_profile", "cool_rate_profile"
 
     def plot_x0(cls):
         return 0.05
@@ -106,16 +105,19 @@ class GasProfiles(HaloProperties):
         halo.g['tcool'] = tcool(halo.g['rho'],halo.g['temp'],halo.g['mu'])
         halo.g['emissivity'] = emissivity(halo.g['rho'],halo.g['temp'],halo.g['mu'], halo.g['tcool'])
         halo.g['edot'] = halo.g['u'].in_units('erg')/halo.g['tcool']
+        halo.g['rho_e'] = halo.g['ne']*halo.g['rho'].in_units('m_p cm**-3')
         ps_tcut_ew = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='emmissivity')
         ps_tcut_mw = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
         ps_mw = pynbody.analysis.profile.Profile(halo.g, type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
         Tew_tcut = ps_tcut_ew['temp']
         Tmw_tcut = ps_tcut_mw['temp']
-        rho_e_tcut = ps_tcut_mw['rho_e']
+        Tmw = ps_mw['temp']
+        rho_e_tcut_mw = ps_tcut_mw['rho_e']
         rho_e_tcut_ew = ps_tcut_ew['rho_e']
+        rho_e_vol = ps_mw['rho_e_vol']
         tc = ps_mw['tcool']
         edot = ps_mw['edot']
-        return Tew_tcut, Tmw_tcut, rho_e_tcut, rho_e_tcut_ew, tc, edot
+        return Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
 
 
 class OldHaloDensityProfile(SphericalRegionHaloProperties):
