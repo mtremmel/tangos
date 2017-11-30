@@ -99,12 +99,14 @@ class GasProfiles(HaloProperties):
     def calculate(self, halo, existing_properties):
         #halo['pos'] -= existing_properties['SSC']
         #halo.wrap()
+        mh = pynbody.array.SimArray(1.6726219e-24, 'g')
+        kb = pynbody.array.SimArray(1.380658e-16, 'erg K**-1')
         delta = self.plot_xdelta()
         nbins = int(existing_properties['max_radius']/ delta)
         maxrad = delta * (nbins + 1)
         halo.g['tcool'] = tcool(halo.g['rho'],halo.g['temp'],halo.g['mu'])
         halo.g['emissivity'] = emissivity(halo.g['rho'],halo.g['temp'],halo.g['mu'], halo.g['tcool'])
-        halo.g['edot'] = halo.g['u'].in_units('erg')/halo.g['tcool']
+        halo.g['edot'] = (halo.g['u']*kb*pynbody.units.m_p/(pynbody.units.k*mh.in_units('Msol')))*halo.g['mass']/halo.g['tcool']
         halo.g['rho_e'] = halo.g['ne']*halo.g['rho'].in_units('m_p cm**-3')
         ps_tcut_ew = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='emmissivity')
         ps_tcut_mw = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
