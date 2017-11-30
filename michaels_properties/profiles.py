@@ -108,7 +108,7 @@ class GasProfiles(HaloProperties):
         halo.g['emissivity'] = emissivity(halo.g['rho'],halo.g['temp'],halo.g['mu'], halo.g['tcool'])
         halo.g['edot'] = (halo.g['u']*kb*halo.g['mass'].in_units('m_p')/pynbody.units.k)/halo.g['tcool']
         halo.g['rho_e'] = halo.g['ne']*halo.g['rho'].in_units('m_p cm**-3')
-        ps_tcut_ew = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='emmissivity')
+        ps_tcut_ew = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='emissivity')
         ps_tcut_mw = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
         ps_mw = pynbody.analysis.profile.Profile(halo.g, type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
         Tew_tcut = ps_tcut_ew['temp']
