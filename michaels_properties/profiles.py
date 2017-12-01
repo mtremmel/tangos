@@ -67,7 +67,7 @@ class GasProfiles(HaloProperties):
     #_mu = 0.58   Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
     @classmethod
     def name(self):
-        return "Tew_tcut_profile", "Tmw_tcut_profile","Tmw_profile", "rho_e_tcut_ew_profile", "rho_e_tcut_mw_profile", "rho_e_vol_profile", "tcool_profile", "cool_rate_profile"
+        return "Tew_tcut_profile", "Tmw_tcut_profile","Tmw_profile", "rho_e_tcut_ew_profile", "rho_e_tcut_mw_profile", "rho_e_vol_profile", "tcool_profile", "cool_rate_profile", "u_gas_profile"
 
     def plot_x0(cls):
         return 0.05
@@ -104,7 +104,7 @@ class GasProfiles(HaloProperties):
         delta = self.plot_xdelta()
         nbins = int(existing_properties['max_radius']/ delta)
         maxrad = delta * (nbins + 1)
-        halo.g['tcool'] = tcool(halo.g['rho'],halo.g['temp'],halo.g['mu'])
+        halo.g['tcool'] = tcool(halo.g['rho'].in_units('g cm**-3'),halo.g['temp'],halo.g['mu'])
         halo.g['emissivity'] = emissivity(halo.g['rho'],halo.g['temp'],halo.g['mu'], halo.g['tcool'])
         halo.g['edot'] = (halo.g['u']*kb*halo.g['mass'].in_units('m_p')/pynbody.units.k)/halo.g['tcool']
         halo.g['rho_e'] = halo.g['ne']*halo.g['rho'].in_units('m_p cm**-3')
@@ -119,7 +119,8 @@ class GasProfiles(HaloProperties):
         rho_e_vol = ps_mw['rho_e_vol']
         tc = ps_mw['tcool']
         edot = ps_mw['edot']
-        return Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
+        u = ps_mw['u']
+        return Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot, u
 
 
 class OldHaloDensityProfile(SphericalRegionHaloProperties):
