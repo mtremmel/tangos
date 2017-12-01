@@ -67,7 +67,7 @@ class GasProfiles(HaloProperties):
     #_mu = 0.58   Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
     @classmethod
     def name(self):
-        return "Tew_tcut_profile", "Tmw_tcut_profile","Tmw_profile", "rho_e_tcut_ew_profile", "rho_e_tcut_mw_profile", "rho_e_vol_profile", "tcool_profile", "cool_rate_profile", "u_gas_profile"
+        return "Tew_tcut_profile", "Tmw_tcut_profile","Tmw_profile", "rho_e_tcut_ew_profile", "rho_e_tcut_mw_profile", "rho_e_vol_profile", "tcool_profile", "cool_rate_profile"
 
     def plot_x0(cls):
         return 0.05
@@ -119,8 +119,7 @@ class GasProfiles(HaloProperties):
         rho_e_vol = ps_mw['rho_e_vol']
         tc = ps_mw['tcool']
         edot = ps_mw['edot']
-        u = ps_mw['u']
-        return Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot, u
+        return Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
 
 
 class OldHaloDensityProfile(SphericalRegionHaloProperties):
