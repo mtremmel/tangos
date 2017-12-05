@@ -1,3 +1,3 @@
 from tangos.properties import *
 
-from . import sfhistory, profiles, bhhist, flows
+from . import sfhistory, profiles, bhhist, flows, thermalsz
