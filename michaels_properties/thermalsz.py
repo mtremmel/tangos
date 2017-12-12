@@ -4,7 +4,9 @@ from tangos.properties import HaloProperties
 
 @pynbody.snapshot.SimSnap.derived_quantity
 def electron_density(sim):
-    number_density = (sim['rho']).in_units("m_p cm^-3")*sim['ne']
+    sim['HII'] = pynbody.snapshot.tipsy.HII(sim)
+    sim['HeIII'] = pynbody.snapshot.tipsy.HeIII(sim)
+    number_density = (sim['rho']).in_units("m_p cm^-3")*pynbody.snapshot.tipsy.ne(sim)#sim['ne']
     number_density.units="cm^-3"
     number_density[number_density<0]=0 # negative ne due to missing metals
     return number_density
