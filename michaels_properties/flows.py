@@ -31,24 +31,25 @@ class NewFlowProfile(SphericalRegionHaloProperties):
         return 1.0
 
     def profile_calculation(self, f_gas, vr_cut, rvir):
-        f_gas['Mdot'] = f_gas['mass'] * f_gas['vr'] / (pynbody.units.Unit("kpc")*self.plot_xdelta())
+        f_gas['Mdot'] = f_gas['mass'] * f_gas['vr_mean'] / (pynbody.units.Unit("kpc")*self.plot_xdelta())
         if vr_cut<0:
-            f_gas['Mdot']*=(f_gas['vr']<vr_cut).view(np.ndarray)
+            f_gas['Mdot']*=(f_gas['vr_mean']<vr_cut).view(np.ndarray)
             f_gas['Mdot'] *= -1
         else:
-            f_gas['Mdot']*=(f_gas['vr']>vr_cut).view(np.ndarray)
+            f_gas['Mdot']*=(f_gas['vr_mean']>vr_cut).view(np.ndarray)
 
 
 
         pro = pynbody.analysis.profile.Profile(f_gas, min=0.0,max=rvir,
                                                nbins=int(rvir/self.plot_xdelta()),
                                                ndim=3, weight_by='Mdot')
-        return pro['weight_fn'].in_units("Msol yr^-1"), pro['vr'], pro['vr2'], pro['temp']
+        return pro['weight_fn'].in_units("Msol yr^-1"), pro['vr_mean'], pro['vr_mean2'], pro['temp']
 
     @centred_calculation
     def calculate(self, halo, properties):
         with pynbody.analysis.halo.vel_center(halo):
-            halo.gas['vr2'] = halo.gas['vr'] ** 2
+            halo.gas['vr_mean'] = np.dot(halo.gas['v_mean'],halo.gas['pos'])
+            halo.gas['vr_mean2'] = halo.gas['vr_mean'] ** 2
             inflow_Mdot, inflow_vel, inflow_vel2, inflow_temp = self.profile_calculation(halo.ancestor.gas, -self._threshold_vel, properties['max_radius'])
             outflow_Mdot, outflow_vel, outflow_vel2, outflow_temp = self.profile_calculation(halo.ancestor.gas, self._threshold_vel,properties['max_radius'])
             #inflow_Mdot_dm, inflow_vel_dm, inflow_vel2_dm, _ = self.profile_calculation(halo.ancestor.dm, -self._threshold_vel,properties['max_radius'])
