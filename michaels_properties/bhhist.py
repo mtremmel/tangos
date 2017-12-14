@@ -67,7 +67,7 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
 
     @classmethod
     def name(cls):
-        return "bh_histogram_galaxy"
+        return "total_bh_histogram_galaxy"
 
     def requires_property(self):
         return []
@@ -79,7 +79,6 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
         if self._bhtype not in list(halo.keys()):
             mdot = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
             return mdot
-
         if type(halo[self._bhtype]) is list:
             all_hists = []
             for bh in halo[self._bhtype]:
@@ -91,10 +90,8 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
             if len(all_hists) != len(halo[self._bhtype]):
                 raise RuntimeError, "bad size! "+str(halo)
             if self._operation=='sum':
-                print "in sum", self._operation
                 mdot =  np.sum(all_hists,axis=0)
             if self._operation=='max':
-                print "in max", self._operation
                 mdot =  np.max(all_hists,axis=0)
         else:
             bh = halo[self._bhtype]
