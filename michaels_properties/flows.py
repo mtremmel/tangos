@@ -47,7 +47,9 @@ class NewFlowProfile(SphericalRegionHaloProperties):
 
     #@centred_calculation
     def calculate(self, halo, properties):
+        original_positions = np.array(halo.ancestor['pos'])
         halo.ancestor['pos'] -= properties['shrink_center']
+        halo.ancestor.wrap()
         with pynbody.analysis.halo.vel_center(halo):
             halo.gas['vr_mean'] = np.sum(halo.gas['v_mean']*halo.gas['pos'],axis=1)/halo.g['r']
             halo.gas['vr_mean2'] = halo.gas['vr_mean'] ** 2
@@ -55,4 +57,5 @@ class NewFlowProfile(SphericalRegionHaloProperties):
             outflow_Mdot, outflow_vel, outflow_vel2, outflow_temp = self.profile_calculation(halo.ancestor.gas, self._threshold_vel,properties['max_radius'])
             #inflow_Mdot_dm, inflow_vel_dm, inflow_vel2_dm, _ = self.profile_calculation(halo.ancestor.dm, -self._threshold_vel,properties['max_radius'])
             #outflow_Mdot_dm, outflow_vel_dm, outflow_vel2_dm, _ = self.profile_calculation(halo.ancestor.dm, self._threshold_vel,properties['max_radius'])
+        halo.ancestor['pos'] = original_positions
         return inflow_Mdot, outflow_Mdot, -inflow_vel, outflow_vel,  inflow_vel2, outflow_vel2, inflow_temp, outflow_temp
