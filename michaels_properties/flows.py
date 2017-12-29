@@ -45,8 +45,9 @@ class NewFlowProfile(SphericalRegionHaloProperties):
                                                ndim=3, weight_by='Mdot')
         return pro['weight_fn'].in_units("Msol yr^-1"), pro['vr_mean'], pro['vr_mean2'], pro['temp']
 
-    @centred_calculation
+    #@centred_calculation
     def calculate(self, halo, properties):
+        halo.ancestor['pos'] -= properties['shrink_center']
         with pynbody.analysis.halo.vel_center(halo):
             halo.gas['vr_mean'] = np.sum(halo.gas['v_mean']*halo.gas['pos'],axis=1)/halo.g['r']
             halo.gas['vr_mean2'] = halo.gas['vr_mean'] ** 2
