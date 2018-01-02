@@ -453,12 +453,10 @@ def instantiate_class(simulation, property_name, silent_fail=False):
 def _import_configured_property_modules():
     from ..config import property_modules
     for pm in property_modules:
-        print(pm)
         if pm=="": continue
         try:
             importlib.import_module(pm)
         except ImportError:
-            print("SHIT")
             warnings.warn("Failed to import requested property module %r. Some properties may be unavailable."%pm,
                           ImportWarning)
 
