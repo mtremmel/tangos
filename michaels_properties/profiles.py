@@ -2,7 +2,7 @@ from tangos.properties import HaloProperties, TimeChunkedProperty
 from tangos.properties.pynbody.spherical_region import SphericalRegionHaloProperties
 import numpy as np
 import pynbody
-from tangos.properties.centring import centred_calculation
+from tangos.properties.pynbody.centring import centred_calculation
 
 kb = pynbody.array.SimArray(1.380658e-16, 'erg K**-1')
 mh = pynbody.array.SimArray(1.6726219e-24, 'g')
