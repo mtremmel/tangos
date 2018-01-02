@@ -1,8 +1,8 @@
 from tangos.properties import HaloProperties, TimeChunkedProperty
-from tangos.properties.spherical_region import SphericalRegionHaloProperties
+from tangos.properties.pynbody.spherical_region import SphericalRegionHaloProperties
 import numpy as np
 import pynbody
-from tangos.properties.centring import centred_calculation
+from tangos.properties.pynbody.centring import centred_calculation
 
 class NewFlowProfile(SphericalRegionHaloProperties):
     #_xmax = 100.0
