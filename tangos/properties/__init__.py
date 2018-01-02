@@ -5,6 +5,7 @@ import six
 from six.moves import zip
 import importlib
 import warnings
+from ..live_calculation import LiveProperty
 from .. import live_calculation
 
 class HaloPropertiesMetaClass(type):
@@ -239,7 +240,6 @@ class TimeChunkedProperty(HaloProperties):
                                 - if 'raw', return the raw data
         """
 
-        print 'here in reassemble', property, type(property)
         from tangos import relation_finding as rfs
         if reassembly_type=='major':
             return cls._reassemble_using_finding_strategy(property, halo, strategy = rfs.MultiHopMajorProgenitorsStrategy)
@@ -265,13 +265,12 @@ class TimeChunkedProperty(HaloProperties):
 
     @classmethod
     def _reassemble_using_finding_strategy(cls, property, halo, strategy, strategy_kwargs={}):
-        #print "in reassemble finding strat", property, isinstance(property, live_calculation.Calculation)
-        if not isinstance(property, live_calculation.Calculation):
+        if not isinstance(property, LiveProperty):
             name = property.name.text
             t, stack = halo.calculate_for_descendants("t()", "raw(" + name + ")", strategy=strategy,strategy_kwargs=strategy_kwargs)
         else:
-            name = property.name()
-            t, stack = halo.calculate_for_descendants("t()", "raw(" + name + "())", strategy=strategy, strategy_kwargs=strategy_kwargs)
+            name = property.__str__()
+            t, stack = halo.calculate_for_descendants("t()", "raw(" + name+")", strategy=strategy, strategy_kwargs=strategy_kwargs)
         final = np.zeros(cls.bin_index(t[0]))
         previous_time = -1
         for t_i, hist_i in zip(t, stack):
