@@ -29,7 +29,7 @@ class Radius(LiveHaloProperties):
 
 class EscapeEnergy(LiveHaloProperties):
 
-	name='escape_energy_profile'
+	names='escape_energy_profile'
 
 	def requires_property(self):
 		return ['tot_mass_profile']
