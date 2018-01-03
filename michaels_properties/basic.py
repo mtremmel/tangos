@@ -34,6 +34,13 @@ class EscapeEnergy(LiveHaloProperties):
 	def requires_property(self):
 		return ['tot_mass_profile']
 
+	def plot_x0(cls):
+		return 0.05\
+	@classmethod
+	def plot_xdelta(cls):
+		return 0.1
+
+
 	def live_calculate(self,halo):
 		mass = np.asarray(halo['tot_mass_profile'])
 
@@ -55,7 +62,8 @@ class EscapeEnergy(LiveHaloProperties):
 
 
 		pot = np.cumsum(pot_dx * force)
-		pot_diff = pot[-1] - pot[::10]
+		radius = halo.calculate('radius()')
+		pot_diff = pot[int(radius/0.01)] - pot[::10]
 		#in cgs units
 		return pot_diff
 
