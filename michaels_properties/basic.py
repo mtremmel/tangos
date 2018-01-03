@@ -18,7 +18,7 @@ class Radius(LiveHaloProperties):
 		ts = halo.timestep
 		z = ts.redshift
 		a = 1.0 / (1.0 + z)
-		H_z = pynbody.anaysis.cosmology._a_dot(a, self._h0, self._omegaM0, self._omegaL0) / a
+		H_z = pynbody.analysis.cosmology._a_dot(a, self._h0, self._omegaM0, self._omegaL0) / a
 		H_z = pynbody.units.Unit("100 km s^-1 Mpc^-1") * H_z
 		rho_crit = (3 * H_z ** 2) / (8 * np.pi * pynbody.units.G)
 		rho_mean = halo['tot_mass_profile']/(4./3. * np.pi * ((np.arange(len(halo['tot_mass_profile']))+1)*0.1)**3)
