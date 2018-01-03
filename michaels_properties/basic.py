@@ -15,7 +15,7 @@ class Radius(LiveHaloProperties):
 		return 'radius'
 
 	def requires_property(self):
-		return['tot_mass_profile']
+		return ['tot_mass_profile']
 
 	def live_calculate(self, halo,*args):
 		ts = halo.timestep
