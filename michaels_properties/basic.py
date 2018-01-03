@@ -51,10 +51,11 @@ class EscapeEnergy(LiveHaloProperties):
 		mass_new[min_r_i:] = scipy.interp(rnew[min_r_i:], r, mass)
 		mass_new[:min_r_i] = mass_new[min_r_i] * (rnew[:min_r_i] / rnew[min_r_i]) ** 3
 
-		force =  mass_new / (rnew ** 2) * pynbody.units.G.in_units('cm**2 s**-2 Msol**-1 kpc')
+		force = mass_new / (rnew ** 2) * pynbody.units.G.in_units('cm**2 s**-2 Msol**-1 kpc')
 
 
 		pot = np.cumsum(pot_dx * force)
 		pot_diff = pot[-1] - pot[::10]
 		#in cgs units
 		return pot_diff
+
