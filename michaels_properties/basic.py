@@ -14,6 +14,9 @@ class Radius(LiveHaloProperties):
 	def name(cls):
 		return 'radius'
 
+	def requires_property(self):
+		return ['tot_mass_profile']
+
 	def live_calculate(self, halo,*args):
 		ts = halo.timestep
 		z = ts.redshift
