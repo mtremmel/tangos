@@ -35,11 +35,11 @@ class EscapeEnergy(LiveHaloProperties):
 		return ['tot_mass_profile']
 
 	def plot_x0(cls):
-		return 0.05\
+		return 0.05
+
 	@classmethod
 	def plot_xdelta(cls):
 		return 0.1
-
 
 	def live_calculate(self,halo):
 		mass = np.asarray(halo['tot_mass_profile'])
