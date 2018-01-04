@@ -75,18 +75,21 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
     def live_calculate(self, halo, *args):
         if halo.object_typecode != 0:
             return None
-
+        print('here in live_calculate!')
         if self._bhtype not in list(halo.keys()):
             mdot = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
             return mdot
+        print('gonna get the BHs!')
         if type(halo[self._bhtype]) is list:
             all_hists = []
+            print('gathering them up...')
             for bh in halo[self._bhtype]:
                 if self._property not in list(bh.keys()):
                     mdot_part = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
                 else:
                     mdot_part = bh.calculate('raw('+self._property+')')
                 all_hists.append(mdot_part)
+            print('done gathering!')
             if len(all_hists) != len(halo[self._bhtype]):
                 raise RuntimeError, "bad size! "+str(halo)
             if self._operation=='sum':
@@ -99,4 +102,5 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
                 mdot = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
             else:
                 mdot = bh.calculate('raw('+self._property+')')
+        print('done with all BHs!')
         return mdot
