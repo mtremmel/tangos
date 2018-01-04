@@ -414,14 +414,11 @@ class LiveProperty(Calculation):
 
     def _evaluate_function(self, halos, input_descriptions, input_values):
         from .. import properties
-        print("here in evaluate", self.name())
         sim = consistent_collection.consistent_simulation_from_halos(halos)
         results = []
         calculator = properties.providing_class(self.name())(sim, *input_descriptions)
         for inputs in zip(halos, *input_values):
-            print ('here eval 2')
             if self._has_required_properties(inputs[0]) and all([x is not None for x in inputs]):
-                print('here eval 3')
                 results.append(calculator.live_calculate_named(self.name(), *inputs))
             else:
                 results.append(None)

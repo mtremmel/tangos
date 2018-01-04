@@ -273,7 +273,6 @@ class TimeChunkedProperty(HaloProperties):
             t, stack = halo.calculate_for_descendants("t()", "raw(" + name + ")", strategy=strategy,strategy_kwargs=strategy_kwargs)
         else:
             name = property.__str__()
-            print("here!", name)
             t, stack = halo.calculate_for_descendants("t()", "raw(" + name+")", strategy=strategy, strategy_kwargs=strategy_kwargs)
         final = np.zeros(cls.bin_index(t[0]))
         previous_time = -1
