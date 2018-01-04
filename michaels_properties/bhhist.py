@@ -1,9 +1,8 @@
-
+from __future__ import absolute_import
+from __future__ import print_function
+from tangos.input_handlers.changa_bh import BHShortenedLog
 from tangos.properties import HaloProperties, TimeChunkedProperty, LiveHaloProperties
 import numpy as np
-import pynbody
-from tangos_nbodyshop_properties.BH import BHShortenedLog
-import scipy
 
 class BHAccAveHistogram(TimeChunkedProperty):
     @classmethod
