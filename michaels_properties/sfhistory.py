@@ -13,10 +13,10 @@ class InnerStarFormHistogram(TimeChunkedProperty):
         return "inner_SFR_histogram"
 
     def requires_property(self):
-        return ["shrink_center", "max_radius"]
+        return ["shrink_center","tot_mass_profile"]
 
     def calculate(self, halo, existing_properties):
-        filter = pynbody.filt.Sphere(self._maxr_frac*existing_properties['max_radius'],cen=existing_properties['shink_center'])
+        filter = pynbody.filt.Sphere(self._maxr_frac*existing_properties.calculate('radius()'),cen=existing_properties['shink_center'])
         M,_ = np.histogram(halo.st[filter]['tform'].in_units("Gyr"),weights=halo.st[filter]['massform'].in_units("Msol"),bins=self.nbins,range=(0,self.tmax_Gyr))
         t_now = halo.properties['time'].in_units("Gyr")
         M/=self.delta_t
