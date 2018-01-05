@@ -37,12 +37,11 @@ class EscapeEnergy(LiveHaloProperties):
 	def plot_x0(cls):
 		return 0.05
 
-	@classmethod
 	def plot_xdelta(cls):
 		return 0.1
 
 	def live_calculate(self,halo):
-		mass = np.asarray(sim.timesteps[ii].halos[0]['tot_mass_profile'])
+		mass = np.asarray(halo['tot_mass_profile'])
 
 		max_x = len(mass) * 0.1
 		pot_dx = 0.01
@@ -58,9 +57,10 @@ class EscapeEnergy(LiveHaloProperties):
 		mass_new[min_r_i:] = scipy.interp(rnew[min_r_i:], r, mass)
 		mass_new[:min_r_i] = mass_new[min_r_i] * (rnew[:min_r_i] / rnew[min_r_i]) ** 3
 
-		force = pynbody.units.G * mass_new / (rnew ** 2)
+		force = mass_new / (rnew ** 2) * pynbody.units.G.in_units('cm**2 s**-2 Msol**-1 kpc')
 
 
 		pot = np.cumsum(pot_dx * force)
 		pot_diff = pot[-1] - pot[::10]
-		return pot_diff.in_units('cm**2 s**-2')
+		#in cgs units
+		return pot_diff
