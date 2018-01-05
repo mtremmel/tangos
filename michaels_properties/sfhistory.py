@@ -24,7 +24,7 @@ class InnerStarFormHistogram(TimeChunkedProperty):
         return np.where(rho_mean>rho_crit.in_units('Msol kpc**-3')*self._ncrit)[0][-1]*0.1
 
     def calculate(self, halo, existing_properties):
-        filter = pynbody.filt.Sphere(self._maxr_frac*self.radius(halo,existing_properties),cen=existing_properties['shink_center'])
+        filter = pynbody.filt.Sphere(self._maxr_frac*self.radius(halo,existing_properties),cen=existing_properties['shrink_center'])
         M,_ = np.histogram(halo.st[filter]['tform'].in_units("Gyr"),weights=halo.st[filter]['massform'].in_units("Msol"),bins=self.nbins,range=(0,self.tmax_Gyr))
         t_now = halo.properties['time'].in_units("Gyr")
         M/=self.delta_t
