@@ -58,11 +58,12 @@ class BHAccAveHistogram(TimeChunkedProperty):
 
 class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
 
-    def __init__(self, simulation=None, property='BH_mdot_histogram', operation='max', bhtype='BH_central'):
+    def __init__(self, simulation=None, property='BH_mdot_histogram', operation='max', bhtype='BH_central', max_dist=None):
         super(BHGalHistogram, self).__init__(simulation)
         self._operation=operation
         self._property = property
         self._bhtype = bhtype
+        self._max_dist = max_dist
 
     @classmethod
     def name(cls):
@@ -80,11 +81,11 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
         if type(halo[self._bhtype]) is list:
             all_hists = []
             for bh in halo[self._bhtype]:
-                if self._property not in list(bh.keys()):
-                    mdot_part = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
-                else:
+                if self._property in list(bh.keys()) and bh['BH_central_distance'] < self._max_dist:
                     mdot_part = bh.calculate('raw('+self._property+')')
-                all_hists.append(mdot_part)
+                    all_hists.append(mdot_part)
+                else:
+                    continue
             if len(all_hists) != len(halo[self._bhtype]):
                 raise RuntimeError, "bad size! "+str(halo)
             if self._operation=='sum':
