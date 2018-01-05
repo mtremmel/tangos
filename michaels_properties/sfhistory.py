@@ -9,9 +9,8 @@ class InnerStarFormHistogram(TimeChunkedProperty):
     _maxr_frac = 0.1
     _ncrit = 200
 
-    @classmethod
-    def name(self):
-        return "inner_SFR_histogram"
+    requires_particle_data = True
+    names = "inner_SFR_histogram"
 
     def requires_property(self):
         return ["shrink_center","tot_mass_profile"]
