@@ -86,8 +86,6 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
                     all_hists.append(mdot_part)
                 else:
                     continue
-            if len(all_hists) != len(halo[self._bhtype]):
-                raise RuntimeError, "bad size! "+str(halo)
             if self._operation=='sum':
                 mdot =  np.sum(all_hists,axis=0)
             if self._operation=='max':
