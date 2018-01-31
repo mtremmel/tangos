@@ -3,6 +3,7 @@ from tangos.properties.pynbody.spherical_region import SphericalRegionHaloProper
 import numpy as np
 import pynbody
 from tangos.properties.pynbody.centring import centred_calculation
+from tangos.properties.pynbody import PynbodyHaloProperties
 
 kb = pynbody.array.SimArray(1.380658e-16, 'erg K**-1')
 mh = pynbody.array.SimArray(1.6726219e-24, 'g')
@@ -70,7 +71,8 @@ def luminosity(self):
         lum[i] = np.sum(subs.g['emissivity']*subs.g['mass']/subs.g['rho'].in_units('Msol cm**-3'))
         return lum
 
-class GasRadiativeCooling(HaloProperties):
+class GasRadiativeCooling(PynbodyHaloProperties):
+
     @classmethod
     def name(self):
         return "lum_gas_tcut_profile", "lum_gas_profile"
@@ -115,6 +117,7 @@ class GasRadiativeCooling(HaloProperties):
 
 
 class GasProfiles(HaloProperties):
+
     _temp_cut = 1.26e6
     #_mu = 0.58   Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
     @classmethod
