@@ -69,7 +69,7 @@ def luminosity(self):
     for i in range(self.nbins):
         subs = self.sim[self.binind[i]]
         lum[i] = np.sum(subs.g['emissivity']*subs.g['mass']/subs.g['rho'].in_units('Msol cm**-3'))
-        return lum
+    return lum
 
 class GasRadiativeCooling(PynbodyHaloProperties):
 
