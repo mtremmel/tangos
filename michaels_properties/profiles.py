@@ -73,6 +73,8 @@ def luminosity(self):
 
 class GasRadiativeCooling(PynbodyHaloProperties):
 
+    _temp_cut = 1.26e6
+
     @classmethod
     def name(self):
         return "lum_gas_tcut_profile", "lum_gas_profile"
