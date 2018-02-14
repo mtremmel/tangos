@@ -77,7 +77,7 @@ def outflow(self,data='mdot'):
     for i in range(self.nbins):
         subs = self.sim[self.binind[i]]
         f_gas = subs.g
-        mdot = f_gas['mass'] * f_gas['vr'] / (pynbody.units.Unit("kpc")*dr)
+        mdot = f_gas['mass'] * f_gas['vr'] / dr
         mdot *= get_outflow_particles(f_gas)
         if data=='mdot':
             out[i] = np.sum(mdot.in_units("Msol yr^-1"))
@@ -89,7 +89,7 @@ def outflow(self,data='mdot'):
 class WindProfile(SphericalRegionHaloProperties):
 
     _threshold_vel = 20.0
-    names = "new_gas_outflow_mdot", "new_gas_outflow_v", "new_gas_outflow_v2","new_gas_outflow_temp",
+    names = "winds_mdot", "winds_v", "winds_v2","winds_temp",
     def region_specification(self, db_data):
         return pynbody.filt.Sphere(db_data['max_radius'], db_data['shrink_center']) & \
                (pynbody.filt.FamilyFilter(pynbody.family.gas)|pynbody.filt.FamilyFilter(pynbody.family.star))
