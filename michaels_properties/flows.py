@@ -73,10 +73,11 @@ def get_outflow_particles(self,fgas):
 @pynbody.analysis.profile.Profile.profile_property
 def outflow(self,data='mdot'):
     out = np.zeros(self.nbins)
+    dr = self['bin_edges'][1:] - self['bin_edges'][:-1]
     for i in range(self.nbins):
         subs = self.sim[self.binind[i]]
         f_gas = subs.g
-        mdot = f_gas['mass'] * f_gas['vr'] / (pynbody.units.Unit("kpc")*self.plot_xdelta())
+        mdot = f_gas['mass'] * f_gas['vr'] / (pynbody.units.Unit("kpc")*dr)
         mdot *= get_outflow_particles(f_gas)
         if data=='mdot':
             out[i] = np.sum(mdot.in_units("Msol yr^-1"))
