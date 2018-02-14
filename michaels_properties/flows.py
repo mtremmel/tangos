@@ -61,7 +61,7 @@ class NewFlowProfile(SphericalRegionHaloProperties):
         return inflow_Mdot, outflow_Mdot, -inflow_vel, outflow_vel,  inflow_vel2, outflow_vel2, inflow_temp, outflow_temp
 
 
-def get_outflow_particles(self,fgas):
+def get_outflow_particles(fgas):
     med_v = np.median(fgas['vr'])
     mad_v = np.mean(np.abs(fgas['vr']-np.median(fgas['vr'])))
     if med_v > mad_v:
