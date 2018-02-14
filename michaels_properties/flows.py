@@ -101,15 +101,6 @@ class WindProfile(SphericalRegionHaloProperties):
     def plot_xdelta(cls):
         return 1.0
 
-    def get_outflow_particles(self,fgas):
-        med_v = np.median(fgas['vr'])
-        mad_v = np.median(np.abs(fgas-np.median(fgas['vr_mean'])))
-        if med_v > mad_v:
-            return (fgas['vr']>self._threshold_vel).view(np.ndarray)
-        else:
-            return (fgas['vr']>max(self._threshold_vel,med_v+mad_v)).view(np.ndarray)
-
-
     def profile_calculation(self, f_gas, rvir):
         pro = pynbody.analysis.profile.Profile(f_gas, min=0.0,max=rvir,
                                                nbins=int(rvir/self.plot_xdelta()), ndim=3)
