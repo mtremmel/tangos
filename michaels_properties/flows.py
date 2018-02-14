@@ -78,7 +78,7 @@ def outflow(self,data='mdot'):
     for i in range(self.nbins):
         subs = self.sim[self.binind[i]]
         f_gas = subs.g
-        mdot = f_gas['mass'] * f_gas['vr'] / dr[i]
+        mdot = f_gas['mass'] * f_gas['vr'] / (pynbody.units.Unit("kpc")*dr[i])
         mdot *= get_outflow_particles(f_gas)
         if data=='mdot':
             out[i] = np.sum(mdot.in_units("Msol yr^-1"))
