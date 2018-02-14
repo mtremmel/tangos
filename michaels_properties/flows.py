@@ -89,7 +89,6 @@ def outflow(self,data='mdot'):
 
 class WindProfile(SphericalRegionHaloProperties):
 
-    _threshold_vel = 20.0
     names = "winds_mdot", "winds_v", "winds_v2","winds_temp",
     def region_specification(self, db_data):
         return pynbody.filt.Sphere(db_data['max_radius'], db_data['shrink_center']) & \
