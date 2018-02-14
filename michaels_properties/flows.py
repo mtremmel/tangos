@@ -62,12 +62,13 @@ class NewFlowProfile(SphericalRegionHaloProperties):
 
 
 def get_outflow_particles(fgas):
+    threshold_vel = 20.0
     med_v = np.median(fgas['vr'])
     mad_v = np.mean(np.abs(fgas['vr']-np.median(fgas['vr'])))
     if med_v > mad_v:
-        return (fgas['vr']>self._threshold_vel).view(np.ndarray)
+        return (fgas['vr']>threshold_vel).view(np.ndarray)
     else:
-        return (fgas['vr']>max(self._threshold_vel,med_v+mad_v)).view(np.ndarray)
+        return (fgas['vr']>max(threshold_vel,med_v+mad_v)).view(np.ndarray)
 
 
 @pynbody.analysis.profile.Profile.profile_property
