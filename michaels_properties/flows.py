@@ -73,6 +73,7 @@ def get_outflow_particles(fgas):
 
 @pynbody.analysis.profile.Profile.profile_property
 def outflow(self,data='mdot'):
+    units = self.sim.g[data].units
     out = np.zeros(self.nbins)
     dr = self['bin_edges'][1:] - self['bin_edges'][:-1]
     for i in range(self.nbins):
@@ -84,7 +85,7 @@ def outflow(self,data='mdot'):
             out[i] = np.sum(mdot.in_units("Msol yr^-1"))
         else:
             out[i] = np.sum(mdot*f_gas[data])/np.sum(mdot)
-    return out
+    return pynbody.array.SimArray(out,units)
 
 
 class WindProfile(SphericalRegionHaloProperties):
