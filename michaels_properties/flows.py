@@ -73,7 +73,10 @@ def get_outflow_particles(fgas):
 
 @pynbody.analysis.profile.Profile.profile_property
 def outflow(self,data='mdot'):
-    units = self.sim.g[data].units
+    if data == 'mdot':
+        units = pynbody.units.Unit('Msol yr**-1')
+    else:
+        units = self.sim.g[data].units
     out = np.zeros(self.nbins)
     dr = self['bin_edges'][1:] - self['bin_edges'][:-1]
     for i in range(self.nbins):
