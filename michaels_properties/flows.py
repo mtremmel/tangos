@@ -108,7 +108,7 @@ class WindProfile(SphericalRegionHaloProperties):
     def profile_calculation(self, f_gas, rvir):
         pro = pynbody.analysis.profile.Profile(f_gas, min=0.0,max=rvir,
                                                nbins=int(rvir/self.plot_xdelta()), ndim=3)
-        return pro['outflow, mdot'], pro['outflow, vr'], pro['outflow,vr2'], pro['outflow,temp']
+        return pro['outflow,mdot'], pro['outflow,vr'], pro['outflow,vr2'], pro['outflow,temp']
 
     def calculate(self, halo, properties):
         original_positions = np.array(halo.ancestor['pos'])
