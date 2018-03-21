@@ -165,7 +165,7 @@ class GasProfiles(SphericalRegionHaloProperties):
         nbins = int(existing_properties['max_radius']/ delta)
         maxrad = delta * (nbins + 1)
         halo.g['tcool'] = tcool(halo.g['rho'].in_units('g cm**-3'),halo.g['temp'],halo.g['mu'])
-        halo.g['emissivity'] = emissivity(halo.g['rho'],halo.g['temp'],halo.g['mu'], halo.g['tcool'])
+        halo.g['emissivity'] = emissivity(halo.g['rho'].in_units('g cm**-3'),halo.g['temp'],halo.g['mu'], halo.g['tcool'])
         halo.g['lumx'] = halo.g['emissivity'] * halo.g['mass'].in_units('g') / halo.g['rho'].in_units('g cm**-3')
         # halo.g['edot'] = (halo.g['u']*kb*halo.g['mass'].in_units('m_p')/pynbody.units.k)/halo.g['tcool']
         halo.g['rho_e'] = halo.g['ne'] * halo.g['rho'].in_units('m_p cm**-3')
