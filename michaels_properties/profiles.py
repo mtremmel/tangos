@@ -118,13 +118,16 @@ class GasRadiativeCooling(PynbodyHaloProperties):
         return ps_tcut_mw['luminosity'], ps_mw['luminosity']
 
 
-class GasProfiles(HaloProperties):
-
+class GasProfiles(SphericalRegionHaloProperties):
     _temp_cut = 1.26e6
     #_mu = 0.58   Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
     @classmethod
     def name(self):
-        return "Tew_tcut_profile", "Tmw_tcut_profile","Tmw_profile", "rho_e_tcut_ew_profile", "rho_e_tcut_mw_profile", "rho_e_vol_profile", "tcool_profile", "cool_rate_profile"
+        return "Tew_tcut_profile", "Tmw_tcut_profile","Tmw_profile", "rho_e_tcut_ew_profile", "rho_e_tcut_mw_profile", "rho_e_vol_profile", "tcool_mw_profile", "tcool_tcut_ew_profile", "tcool_tcut_mw_profile"
+
+    def region_specification(self, db_data):
+        return pynbody.filt.Sphere(db_data['max_radius'], db_data['shrink_center']) & \
+               (pynbody.filt.FamilyFilter(pynbody.family.gas)|pynbody.filt.FamilyFilter(pynbody.family.star))
 
     def plot_x0(cls):
         return 0.05
@@ -152,7 +155,7 @@ class GasProfiles(HaloProperties):
     def requires_property(self):
         return ["shrink_center", "max_radius"]
 
-    @centred_calculation
+    #@centred_calculation
     def calculate(self, halo, existing_properties):
         #halo['pos'] -= existing_properties['SSC']
         #halo.wrap()
