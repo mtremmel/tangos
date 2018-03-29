@@ -155,7 +155,7 @@ class GasProfiles(SphericalRegionHaloProperties):
     def requires_property(self):
         return ["shrink_center", "max_radius"]
 
-    #@centred_calculation
+    @centred_calculation
     def calculate(self, halo, existing_properties):
         #halo['pos'] -= existing_properties['SSC']
         #halo.wrap()
