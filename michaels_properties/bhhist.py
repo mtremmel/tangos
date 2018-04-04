@@ -82,11 +82,15 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
             all_hists = []
             for bh in halo[self._bhtype]:
                 if 'BH_central_distance' not in bh.keys():
+                    mdot_part = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
+                    all_hists.append(mdot)
                     continue
                 if self._property in list(bh.keys()) and bh['BH_central_distance'] < self._max_dist:
                     mdot_part = bh.calculate('raw('+self._property+')')
                     all_hists.append(mdot_part)
                 else:
+                    mdot_part = np.zeros(self.nbins)[self.store_slice(halo.timestep.time_gyr)]
+                    all_hists.append(mdot)
                     continue
             if self._operation=='sum':
                 mdot =  np.sum(all_hists,axis=0)
