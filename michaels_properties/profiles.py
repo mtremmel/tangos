@@ -3,6 +3,7 @@ from tangos.properties.pynbody.spherical_region import SphericalRegionHaloProper
 import numpy as np
 import pynbody
 from tangos.properties.pynbody.centring import centred_calculation
+from tangos.properties.pynbody import PynbodyHaloProperties
 
 kb = pynbody.array.SimArray(1.380658e-16, 'erg K**-1')
 mh = pynbody.array.SimArray(1.6726219e-24, 'g')
@@ -62,7 +63,63 @@ def rho_e_vol(self):
         n_e[i] = np.sum(subs.g['ne'] * subs.g['mass'].in_units('m_p'))/self._binsize.in_units('cm**'+str(int(self.ndim)))[i]
     return n_e
 
+@pynbody.analysis.profile.Profile.profile_property
+def luminosity(self):
+    lum = np.zeros(self.nbins)
+    for i in range(self.nbins):
+        subs = self.sim[self.binind[i]]
+        lum[i] = np.sum(subs.g['emissivity']*subs.g['mass']/subs.g['rho'].in_units('Msol cm**-3'))
+    return lum
+
+class GasRadiativeCooling(PynbodyHaloProperties):
+
+    _temp_cut = 1.26e6
+
+    @classmethod
+    def name(self):
+        return "lum_gas_tcut_profile", "lum_gas_profile"
+
+    def plot_x0(cls):
+        return 0.5
+
+    @classmethod
+    def plot_xdelta(cls):
+        return 1.0
+
+    @classmethod
+    def plot_xlabel(cls):
+        return "R/kpc"
+
+    @classmethod
+    def plot_ylog(cls):
+        return False
+
+    @classmethod
+    def plot_xlog(cls):
+        return False
+
+    @staticmethod
+    def plot_ylabel():
+        return "Luminosity ergs/s", "Luminosity ergs/s"
+
+    def requires_property(self):
+        return ["shrink_center", "max_radius"]
+
+    @centred_calculation
+    def calculate(self, halo, existing_properties):
+
+        delta = self.plot_xdelta()
+        nbins = int(existing_properties['max_radius']/ delta)
+        maxrad = delta * (nbins + 1)
+        halo.g['tcool'] = tcool(halo.g['rho'].in_units('g cm**-3'),halo.g['temp'],halo.g['mu'])
+        halo.g['emissivity'] = emissivity(halo.g['rho'].in_units('g cm**-3'),halo.g['temp'],halo.g['mu'], halo.g['tcool'])
+        ps_tcut_mw = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
+        ps_mw = pynbody.analysis.profile.Profile(halo.g, type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
+        return ps_tcut_mw['luminosity'], ps_mw['luminosity']
+
+
 class GasProfiles(SphericalRegionHaloProperties):
+
     _temp_cut = 1.26e6
     #_mu = 0.58   Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
     @classmethod

@@ -58,7 +58,7 @@ class BHAccAveHistogram(TimeChunkedProperty):
 
 class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
 
-    def __init__(self, simulation=None, property='BH_mdot_histogram', operation='max', bhtype='BH_central', max_dist=None):
+    def __init__(self, simulation=None, property='BH_mdot_histogram', operation='max', bhtype='BH_central', max_dist=10):
         super(BHGalHistogram, self).__init__(simulation)
         self._operation=operation
         self._property = property
@@ -81,6 +81,8 @@ class BHGalHistogram(LiveHaloProperties,TimeChunkedProperty):
         if type(halo[self._bhtype]) is list:
             all_hists = []
             for bh in halo[self._bhtype]:
+                if 'BH_central_distance' not in bh.keys():
+                    continue
                 if self._property in list(bh.keys()) and bh['BH_central_distance'] < self._max_dist:
                     mdot_part = bh.calculate('raw('+self._property+')')
                     all_hists.append(mdot_part)
