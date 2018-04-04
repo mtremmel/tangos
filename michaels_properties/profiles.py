@@ -119,7 +119,6 @@ class GasRadiativeCooling(PynbodyHaloProperties):
 
 
 class GasProfiles(SphericalRegionHaloProperties):
-
     _temp_cut = 1.26e6
     #_mu = 0.58   Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, edot
     @classmethod
@@ -166,6 +165,7 @@ class GasProfiles(SphericalRegionHaloProperties):
         nbins = int(existing_properties['max_radius']/ delta)
         maxrad = delta * (nbins + 1)
         halo.g['tcool'] = tcool(halo.g['rho'].in_units('g cm**-3'),halo.g['temp'],halo.g['mu'])
+<<<<<<< HEAD
         halo.g['emissivity'] = emissivity(halo.g['rho'],halo.g['temp'],halo.g['mu'], halo.g['tcool'])
         halo.g['lumx'] = halo.g['emissivity'] * halo.g['mass'].in_units('g')/halo.g['rho'].in_units('g cm**-3')
         #halo.g['edot'] = (halo.g['u']*kb*halo.g['mass'].in_units('m_p')/pynbody.units.k)/halo.g['tcool']
@@ -173,6 +173,18 @@ class GasProfiles(SphericalRegionHaloProperties):
         ps_tcut_ew = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='lumx')
         ps_tcut_mw = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp',self._temp_cut)], type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
         ps_mw = pynbody.analysis.profile.Profile(halo.g, type='lin', ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
+=======
+        halo.g['emissivity'] = emissivity(halo.g['rho'].in_units('g cm**-3'),halo.g['temp'],halo.g['mu'], halo.g['tcool'])
+        halo.g['lumx'] = halo.g['emissivity'] * halo.g['mass'].in_units('g') / halo.g['rho'].in_units('g cm**-3')
+        # halo.g['edot'] = (halo.g['u']*kb*halo.g['mass'].in_units('m_p')/pynbody.units.k)/halo.g['tcool']
+        halo.g['rho_e'] = halo.g['ne'] * halo.g['rho'].in_units('m_p cm**-3')
+        ps_tcut_ew = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp', self._temp_cut)], type='lin',
+                                                      ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='lumx')
+        ps_tcut_mw = pynbody.analysis.profile.Profile(halo.g[pynbody.filt.HighPass('temp', self._temp_cut)], type='lin',
+                                                      ndim=3, min=0, max=maxrad, nbins=nbins, weight_by='mass')
+        ps_mw = pynbody.analysis.profile.Profile(halo.g, type='lin', ndim=3, min=0, max=maxrad, nbins=nbins,
+                                                 weight_by='mass')
+>>>>>>> mostcurrent
         Tew_tcut = ps_tcut_ew['temp']
         Tmw_tcut = ps_tcut_mw['temp']
         Tmw = ps_mw['temp']
@@ -183,7 +195,11 @@ class GasProfiles(SphericalRegionHaloProperties):
         tc_tcut_ew = ps_tcut_ew['tcool']
         tc_tcut_mw = ps_tcut_mw['tcool']
 
+<<<<<<< HEAD
         edot = ps_mw['edot']
+=======
+        #edot = ps_mw['edot']
+>>>>>>> mostcurrent
         return Tew_tcut, Tmw_tcut, Tmw, rho_e_tcut_ew, rho_e_tcut_mw, rho_e_vol, tc, tc_tcut_ew, tc_tcut_mw
 
 
