@@ -65,7 +65,10 @@ class BH(PynbodyPropertyCalculation):
             except KeyError:
                 main_halo_ssc = None
 
-        entry = np.where(mask)[0]
+        #Avoid issues with double entries
+        #This will always select the last (latest) entry
+        #Double entries can occur with simulation restarts
+        entry = np.where(mask)[0][-1]
 
         print("target entry is", entry)
         final = {}
