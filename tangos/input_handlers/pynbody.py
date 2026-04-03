@@ -827,6 +827,13 @@ class ChangaAHFv1InputHandler(ChangaInputHandler):
         kwargs['halo_numbers'] = 'v1'
         return super()._construct_pynbody_halos(sim, *args, **kwargs)
 
+class ChangaAHFiordInputHandler(ChangaInputHandler):
+    patterns=['iordInfo.npy']
+    @classmethod
+    def _construct_pynbody_halos(cls, sim, *args, **kwargs):
+        kwargs['use_iord'] = True
+        return super()._construct_pynbody_halos(sim, *args, **kwargs)
+
 
 from . import caterpillar, eagle, ramsesHOP
 
