@@ -237,7 +237,7 @@ class ChangaBHImporter(GenericTangosTool):
             timestep_particle_data.physical_units()
 
             try:
-                pynbody_halos = timestep.simulation.get_ouput_handler().get_catalogue(timestep.extension,'halo')
+                pynbody_halos = timestep.simulation.get_output_handler().get_catalogue(timestep.extension,'halo')
             except:
                 logger.warning("halo catalogue not found")
                 pynbody_halos = None
@@ -264,7 +264,7 @@ class ChangaBHImporter(GenericTangosTool):
 
             if pynbody_halos is not None:
                 logger.info("Calculating halo associations for BHs in timestep %r", timestep)
-                bh_cen_halos, bh_halos = self._get_bh_halo_assignments(timestep_particle_data)
+                bh_cen_halos, bh_halos = self._get_bh_halo_assignments(timestep_particle_data, pynbody_halos)
             else:
                 logger.warning("halo catalogue not found for timestep %r, skipping this step for BH halo assignments", timestep)
                 logger.info("Freeing the timestep particle data")
