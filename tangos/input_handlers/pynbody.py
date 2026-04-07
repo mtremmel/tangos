@@ -828,7 +828,7 @@ class ChangaAHFv1InputHandler(ChangaInputHandler):
         return super()._construct_pynbody_halos(sim, *args, **kwargs)
 
 class ChangaAHFiordInputHandler(ChangaInputHandler):
-    patterns=['iordInfo.npy']
+    patterns=['*AHF_iordInfo.npy']
     @classmethod
     def _construct_pynbody_halos(cls, sim, *args, **kwargs):
         kwargs['use_iord'] = True
