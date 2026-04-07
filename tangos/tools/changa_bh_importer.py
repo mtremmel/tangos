@@ -180,8 +180,8 @@ class ChangaBHImporter(GenericTangosTool):
         return track
 
     def _get_bh_halo_assignments(self, pynbody_snapshot, pynbody_halos):
-        pynbody_halos = pynbody_snapshot.halos()
-        #pynbody_halos.load_all()
+        #pynbody_halos = pynbody_snapshot.halos()
+        pynbody_halos.load_all()
 
         if 'bh' in pynbody_snapshot.families():
             bh_cen_halos = pynbody_halos.get_group_array(family='bh')
