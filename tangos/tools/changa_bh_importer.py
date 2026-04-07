@@ -179,9 +179,9 @@ class ChangaBHImporter(GenericTangosTool):
                 track.append(tx)
         return track
 
-    def _get_bh_halo_assignments(self, pynbody_snapshot):
+    def _get_bh_halo_assignments(self, pynbody_snapshot, pynbody_halos):
         pynbody_halos = pynbody_snapshot.halos()
-        pynbody_halos.load_all()
+        #pynbody_halos.load_all()
 
         if 'bh' in pynbody_snapshot.families():
             bh_cen_halos = pynbody_halos.get_group_array(family='bh')
@@ -236,6 +236,12 @@ class ChangaBHImporter(GenericTangosTool):
 
             timestep_particle_data.physical_units()
 
+            try:
+                pynbody_halos = timestep.simulation.get_ouput_handler().get_catalogue(timestep.extension,'halo')
+            except:
+                logger.warning("halo catalogue not found")
+                pynbody_halos = None
+
             logger.info("Gathering existing BH halo information from database for step %r", timestep)
 
             bhobjs = timestep.bhs.all()
@@ -256,9 +262,15 @@ class ChangaBHImporter(GenericTangosTool):
             self._add_missing_trackdata_and_BH_objects(timestep, bh_iord_this_timestep, existing_bh_nums)
             self._session.expire_all()
 
-            logger.info("Calculating halo associations for BHs in timestep %r", timestep)
-            bh_cen_halos, bh_halos = self._get_bh_halo_assignments(timestep_particle_data)
-
+            if pynbody_halos is not None:
+                logger.info("Calculating halo associations for BHs in timestep %r", timestep)
+                bh_cen_halos, bh_halos = self._get_bh_halo_assignments(timestep_particle_data)
+            else:
+                logger.warning("halo catalogue not found for timestep %r, skipping this step for BH halo assignments", timestep)
+                logger.info("Freeing the timestep particle data")
+                with check_deleted(timestep_particle_data):
+                    del (timestep_particle_data)
+                continue
             # re-order our information so that links refer to BHs in descending order of mass
             bh_order_by_mass = np.argsort(bh_mass_this_timestep)[::-1]
             bh_iord_this_timestep = bh_iord_this_timestep[bh_order_by_mass]
