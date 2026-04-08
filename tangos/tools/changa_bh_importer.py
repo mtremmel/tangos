@@ -189,7 +189,7 @@ class ChangaBHImporter(GenericTangosTool):
             bh_cen_halos = pynbody_halos.get_group_array(family='star')
             bh_cen_halos = bh_cen_halos[pynbody_snapshot.st['tform']<0]
 
-        if 'hostHalo' in pynbody_halos.get_dummy_halo(0).properties:
+        if 'hostHalo' in pynbody_halos.get_dummy_halo(pynbody_halos._halo_properties['ID'][0]).properties:
             bh_halos = bh_cen_halos
             continue_searching = True
             iteration_count = 0
