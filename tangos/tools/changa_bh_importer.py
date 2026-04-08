@@ -282,6 +282,8 @@ class ChangaBHImporter(GenericTangosTool):
             logger.info("Freeing the timestep particle data")
             with check_deleted(timestep_particle_data):
                 del (timestep_particle_data)
+            with check_deleted(pynbody_halos):
+                del (pynbody_halos)
 
             if bh_halos is not None:
                 self._assign_bh_to_halos(bh_halos, bh_iord_this_timestep, timestep, "BH")
