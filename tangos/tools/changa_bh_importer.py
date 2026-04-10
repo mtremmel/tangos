@@ -211,14 +211,13 @@ class ChangaBHImporter(GenericTangosTool):
                 continue_searching = not all([bhi==-1 for bhi in bh_halos_new])
 
                 # but if the parent is -1, record  the original halo number
-                bh_halos = [bh_halos_new[i] if bh_halos_new[i] != -1 else bh_halos[i] for i in range(len(bh_halos))]
+                bh_halos = [bh_halos_new[i] if bh_halos_new[i] >=min_halo_id else bh_halos[i] for i in range(len(bh_halos))]
 
         else:
             bh_halos = None
 
         with check_deleted(pynbody_halos):
             del pynbody_halos
-
         return bh_cen_halos, np.asarray(bh_halos)
 
     def _import_black_holes(self):
