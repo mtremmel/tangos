@@ -46,7 +46,7 @@ class BH(PynbodyPropertyCalculation):
 
 class BHAccHistogram(TimeChunkedProperty):
 
-    requires_particle_data = True
+    requires_particle_data = False
     names = "BH_mdot_histogram",
 
     def requires_property(self):
@@ -68,15 +68,15 @@ class BHAccHistogram(TimeChunkedProperty):
 
     def calculate(self, particles, properties):
 
-        particles = particles.s
+        #particles = particles.s
 
-        if len(particles) != 1:
-            raise RuntimeError("Not a BH!")
+        #if len(particles) != 1:
+        #    raise RuntimeError("Not a BH!")
 
-        if particles['tform'][0] > 0:
-            raise RuntimeError("Not a BH!")
+        #if particles['tform'][0] > 0:
+        #    raise RuntimeError("Not a BH!")
 
-        mask = self.log.vars['bhid'] == particles['iord']
+        mask = self.log.vars['bhid'] == properties.halo_number
         if (mask.sum() == 0):
             raise RuntimeError(f"Can't find BH {particles['iord']} in .orbit file")
 
