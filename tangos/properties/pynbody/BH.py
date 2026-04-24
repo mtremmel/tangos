@@ -12,7 +12,7 @@ from . import PynbodyPropertyCalculation
 class BH(PynbodyPropertyCalculation):
 
     names = "BH_mdot", "BH_mdot_ave", "BH_central_offset", "BH_central_distance", "BH_mass"
-    requires_particle_data = True
+    requires_particle_data = False
 
 
     def requires_property(self):
@@ -34,13 +34,14 @@ class BH(PynbodyPropertyCalculation):
         main_halo_ssc = properties['host_halo.shrink_center']
 
         if main_halo_ssc is None:
-            offset = [0.0, 0.0, 0.0]
+            offset = None
+            return bh_data['mdot'], bh_data['mdotmean'], None, None, bh_data['mass']
         else:
             offset = np.array((bh_data['x'], bh_data['y'], bh_data['z'])) - main_halo_ssc
             bad, = np.where(np.abs(offset) > boxsize / 2.)
             offset[bad] = -1.0 * (offset[bad] / np.abs(offset[bad])) * np.abs(boxsize - np.abs(offset[bad]))
 
-        return bh_data['mdot'], bh_data['mdotmean'], offset, np.linalg.norm(offset), bh_data['mass']
+            return bh_data['mdot'], bh_data['mdotmean'], offset, np.linalg.norm(offset), bh_data['mass']
 
 
 class BHAccHistogram(TimeChunkedProperty):
