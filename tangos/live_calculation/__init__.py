@@ -24,6 +24,78 @@ from tangos.util import consistent_collection
 
 from .. import core, temporary_halolist as thl
 
+#: infix operators of the mini-language, tightest-binding first, as
+#: (symbol, live-calculation function name). All are right-associative.
+IN_OPS = [("**", "power"),
+          ("*", "multiply"),
+          ("/", "divide"),
+          ("+", "add"),
+          ("-", "subtract"),
+          (">", "greater"),
+          ("<", "less"),
+          ("|", "logical_or"),
+          ("&", "logical_and"),
+          ("==", "equal"),
+          ("!=", "not_equal"),
+          (">=", "greater_equal"),
+          ("<=", "less_equal")]
+
+#: prefix operators of the mini-language. These bind less tightly than any of the
+#: infix operators, so that e.g. -a+b is negate(add(a,b)).
+UNARY_OPS = [("!", "logical_not"),
+             ("~", "logical_not"), # ~ mirrors python, so that lambdas can be used interchangeably
+             ("-", "negate")]
+
+
+def _operator_table(operators, first_precedence=0):
+    """Build a mapping from function name to (symbol, precedence) from an operator list.
+
+    Where more than one symbol maps to the same function, the first is used for
+    printing, but each keeps its own precedence, mirroring the parser.
+    """
+    table = {}
+    for precedence, (symbol, function_name) in enumerate(operators, start=first_precedence):
+        table.setdefault(function_name, (symbol, precedence))
+    return table
+
+
+_INFIX_OPERATORS = _operator_table(IN_OPS)
+_PREFIX_OPERATORS = _operator_table(UNARY_OPS, len(IN_OPS))
+
+
+def _str_operand(calculation, tighter_than):
+    """Return str(calculation) for use as an operand, bracketed if it binds too loosely"""
+    operator = calculation._operator_and_precedence()
+    if operator is not None and operator[1] > tighter_than:
+        return "(" + str(calculation) + ")"
+    return str(calculation)
+
+
+def _str_without_operators(calculation):
+    """Return a string for calculation in a context where operators cannot appear.
+
+    Brackets are not an option in such contexts (the mini-language allows only a
+    property, function or array element on either side of a '.'), so an operator is
+    written out in its underlying function form instead, e.g. add(a,b).c rather
+    than a+b.c
+    """
+    if calculation._operator_and_precedence() is not None:
+        return calculation._as_function_str()
+    return str(calculation)
+
+
+def _str_as_property_or_function(calculation):
+    """Return a string for calculation where only a property or function may appear.
+
+    This is more restrictive than _str_without_operators: to the left of a '.' or a
+    '[', the mini-language accepts neither operators nor array elements, so anything
+    calculated by a function is written out in function form, e.g. element(a,0).b
+    rather than a[0].b
+    """
+    if isinstance(calculation, LiveProperty):
+        return calculation._as_function_str()
+    return str(calculation)
+
 
 class UnknownValue:
     """A dummy object returned by Calculation.proxy_value when the value of the calculation cannot be predicted"""
@@ -52,6 +124,13 @@ class Calculation:
 
     def __str__(self):
         raise NotImplementedError
+
+    def _operator_and_precedence(self):
+        """Return (symbol, precedence, number of operands) if this prints as an operator.
+
+        Returns None for calculations that are not written as an operator, which is
+        the case for everything except the arithmetic and logic functions."""
+        return None
 
     def set_extraction_pattern(self, extraction_pattern):
         self._extraction_pattern = extraction_pattern
@@ -186,7 +265,7 @@ class Calculation:
         if load_into_session is not None:
             self._refetch_halos_from_original_session(output_values, load_into_session)
 
-        return [self._make_numpy_array(x) for x in output_values]
+        return [values_to_array(x) for x in output_values]
 
     def _refetch_halos_from_original_session(self, unsanitized_values, session):
         output_halo_ids = []
@@ -209,18 +288,6 @@ class Calculation:
                     j+=1
 
 
-
-    @staticmethod
-    def _make_numpy_array(x):
-        if len(x)==0:
-            return x
-        if isinstance(x[0], np.ndarray):
-            try:
-                return np.array(list(x), dtype=x[0].dtype)
-            except ValueError:
-                return x
-        else:
-            return np.array(x, dtype=type(x[0]))
 
     def n_columns(self):
         """Return the number of separate properties returned for each halo.
@@ -317,7 +384,7 @@ class MultiCalculation(Calculation):
     """Represents a single calculation that returns the results from multiple sub-calculations."""
     def __init__(self, *calculations):
         super().__init__()
-        self.calculations = [c if isinstance(c, Calculation) else parser.parse_property_name(c) for c in calculations]
+        self.calculations = [parser.parse_property_name_if_required(c) for c in calculations]
 
     def retrieves(self):
         x = set()
@@ -396,8 +463,54 @@ class LiveProperty(Calculation):
         self._name = str(tokens[0])
         self._inputs = list(tokens[1:])
 
-    def __str__(self):
+    def _as_function_str(self):
         return self._name + "(" + (",".join(str(x) for x in self._inputs)) + ")"
+
+    def _operator_and_precedence(self):
+        if len(self._inputs) == 2 and self._name in _INFIX_OPERATORS:
+            symbol, precedence = _INFIX_OPERATORS[self._name]
+            return symbol, precedence, 2
+        elif len(self._inputs) == 1 and self._name in _PREFIX_OPERATORS:
+            symbol, precedence = _PREFIX_OPERATORS[self._name]
+            return symbol, precedence, 1
+        else:
+            return None
+
+    def _as_element_str(self):
+        """Return the array-indexing form of this calculation, e.g. my_profile[3].
+
+        Returns None if this calculation is not an extraction of a single array
+        element, or if the index is not a literal number as the mini-language
+        requires."""
+        if self._name != "element" or len(self._inputs) != 2:
+            return None
+        array, index = self._inputs
+        if not isinstance(index, FixedNumericInput):
+            return None
+        if not isinstance(array, (StoredProperty, LiveProperty)):
+            return None
+        return _str_as_property_or_function(array) + "[" + str(index) + "]"
+
+    def __str__(self):
+        as_element = self._as_element_str()
+        if as_element is not None:
+            return as_element
+
+        operator = self._operator_and_precedence()
+        if operator is None:
+            return self._as_function_str()
+
+        symbol, precedence, num_operands = operator
+        if num_operands == 1:
+            # prefix operators are right-associative, so an operand at the same
+            # precedence needs no brackets, e.g. --a
+            return symbol + _str_operand(self._inputs[0], precedence)
+        else:
+            # infix operators are right-associative, so the left operand must bind
+            # more tightly than this operator, whereas the right operand need only
+            # bind at least as tightly
+            return (_str_operand(self._inputs[0], precedence - 1) + symbol
+                    + _str_operand(self._inputs[1], precedence))
 
     def name(self):
         return self._name
@@ -568,20 +681,21 @@ class Link(Calculation):
         self._multi_selection_column = None
         self._constraints_columns = []
         self._expect_multivalues = False
-        if not isinstance(self.locator, Calculation):
-            self.locator = parser.parse_property_name(self.locator)
+        self.locator = parser.parse_property_name_if_required(self.locator)
 
         if isinstance(self.locator, StoredProperty):
             self.locator.set_extraction_pattern(extraction_patterns.HaloLinkTargetGetter())
             self.locator.set_multivalued() # we want to at least know if there are multiple possible links to follow
             self._expect_multivalues = True
 
-        if not isinstance(self.property, Calculation):
-            self.property = parser.parse_property_name(self.property)
+        self.property = parser.parse_property_name_if_required(self.property)
 
 
     def __str__(self):
-        return str(self.locator)+"."+str(self.property)
+        # the locator is more restricted than the target: a[0].b is not valid in the
+        # mini-language, whereas a.b[0] is
+        return (_str_as_property_or_function(self.locator) + "."
+                + _str_without_operators(self.property))
 
     def name(self):
         return self.property.name()
@@ -746,6 +860,102 @@ class StoredProperty(Calculation):
 
 
 
+
+
+def values_to_array(values, mark_gaps=False):
+    """Convert the results of a calculation for a series of objects into a numpy array.
+
+    The dtype is taken from the first result, so that an integer column stays an integer
+    column, and a column of equal-length arrays is stacked into a two-dimensional array.
+    A column that cannot be stacked in this way is returned unchanged.
+
+    :param values: the results, one per object
+    :param mark_gaps: if False (default), every result must be present. If True, results
+      which could not be obtained (represented by None) are retained and marked: by NaN if
+      the column turns out to consist of floating point numbers, and otherwise by None in
+      an object array. An integer column is deliberately not promoted to floating point to
+      make room for NaN, since tangos supports integer identifiers too large to survive the
+      round trip; and a gap in an array-valued column is None rather than an array of NaNs,
+      since the length such an array should have is unknowable.
+    """
+    if mark_gaps:
+        present = [value for value in values if value is not None]
+        if len(present) < len(values):
+            if len(present) > 0:
+                # convert what is present, to discover the type of the column
+                as_array = values_to_array(present)
+                if isinstance(as_array, np.ndarray) and as_array.ndim == 1 \
+                        and as_array.dtype.kind in "fc":
+                    return np.array([np.nan if value is None else value for value in values],
+                                    dtype=as_array.dtype)
+
+            # NB filled element by element; assigning the list in one go would let numpy
+            # try to broadcast any arrays it contains
+            result = np.empty(len(values), dtype=object)
+            for i, value in enumerate(values):
+                result[i] = value
+            return result
+
+    if len(values) == 0:
+        return values
+    if isinstance(values[0], np.ndarray):
+        try:
+            return np.array(list(values), dtype=values[0].dtype)
+        except ValueError:
+            return values
+    else:
+        return np.array(values, dtype=type(values[0]))
+
+
+def parse_property_list(*plist):
+    """Return a single Calculation representing the properties requested of a gathering method.
+
+    Each argument may be a string, a lambda taking no arguments, or a Calculation. A lone
+    Calculation is returned unchanged, so that a MultiCalculation passed on its own keeps
+    all its columns.
+    """
+    if len(plist) == 1 and isinstance(plist[0], Calculation):
+        return plist[0]
+    return parser.parse_property_names(*plist)
+
+
+def calculate_over_objects(property_description, query_context, load_into_session,
+                           sanitize=True):
+    """Evaluate a calculation over a set of simulation objects, and return the results.
+
+    This underlies the various methods that gather properties for many objects at once,
+    such as :meth:`tangos.core.timestep.TimeStep.calculate_all`,
+    :meth:`tangos.core.halo.SimulationObjectBase.calculate_for_progenitors` and
+    :meth:`tangos.relation_finding.MergerTree.calculate_all`.
+
+    The query is performed in a session of its own, because supplement_halo_query
+    deliberately loads objects with incomplete property collections. Were the caller's own
+    session used, those incomplete collections would be cached in its identity map, and a
+    later query for a different property would then silently return nothing for objects
+    that had already been loaded.
+
+    :param property_description: the Calculation to evaluate
+    :param query_context: a context manager which is called with the private session and
+      yields a (query, halo_alias) pair, where the query returns the objects to evaluate
+      over and halo_alias may be None to refer to objects directly. It is a context manager
+      so that any temporary table underlying the query stays alive until the query has run.
+    :param load_into_session: the session into which any simulation objects appearing in
+      the results should be re-loaded; normally the caller's own session
+    :param sanitize: if True (default), drop rows for which any result is missing, and
+      return a list of typed arrays. If False, return the raw object array, of shape
+      n_columns x n_objects, with None marking a missing result.
+    """
+    session = core.Session()
+    try:
+        with query_context(session) as (raw_query, halo_alias):
+            query = property_description.supplement_halo_query(raw_query, halo_alias)
+            results = query.all()
+            if sanitize:
+                return property_description.values_sanitized(results, load_into_session)
+            else:
+                return property_description.values(results, load_into_session)
+    finally:
+        session.close()
 
 
 from . import builtin_functions, parser

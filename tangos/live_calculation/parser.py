@@ -1,4 +1,5 @@
 import functools
+import re
 import threading
 
 import pyparsing as pp
@@ -6,6 +7,8 @@ import pyparsing as pp
 _parsing_lock = threading.Lock() # pyparsing is NOT thread safe
 
 from . import (
+    IN_OPS,
+    UNARY_OPS,
     Calculation,
     FixedInput,
     FixedNumericInput,
@@ -13,6 +16,7 @@ from . import (
     LiveProperty,
     MultiCalculation,
     StoredProperty,
+    from_lambda,
 )
 
 
@@ -25,22 +29,8 @@ pp.ParserElement.enable_packrat()
 
 numerical_value = pp.Regex(r'-?\d+(\.\d*)?([eE]-?\d+)?').set_parse_action(pack_args(FixedNumericInput))
 
-IN_OPS = [("**", "power"),
-          ("*", "multiply"),
-          ("/", "divide"),
-          ("+", "add"),
-          ("-", "subtract"),
-          (">", "greater"),
-          ("<", "less"),
-          ("|", "logical_or"),
-          ("&", "logical_and"),
-          ("==", "equal"),
-          ("!=", "not_equal"),
-          (">=", "greater_equal"),
-          ("<=", "less_equal")]
-
-UNARY_OPS = [("!", "logical_not"),
-             ("-", "negate")]
+# n.b. IN_OPS and UNARY_OPS are defined alongside the Calculation classes, which need
+# them to write calculations back out in operator form
 
 IN_OPS_PYPARSING = []
 UNARY_OPS_PYPARSING = []
@@ -48,9 +38,22 @@ UNARY_OPS_PYPARSING = []
 def generate_property_from_inop(opFunctionName, tokens):
     return LiveProperty(opFunctionName, *tokens[0])
 
+_IN_OP_SYMBOLS = {opSymbol for opSymbol, _ in IN_OPS}
+
+def _matcher_for(opSymbol):
+    """Match opSymbol, but not when it is the prefix of a longer operator (e.g. > inside >=)
+
+    IN_OPS is ordered by precedence, so a shorter operator can be tried before a longer one
+    that it prefixes; a bare Literal would then consume part of the longer operator."""
+    longer = [s for s in _IN_OP_SYMBOLS if s != opSymbol and s.startswith(opSymbol)]
+    if not longer:
+        return pp.Literal(opSymbol)
+    suffixes = "|".join(re.escape(s[len(opSymbol):]) for s in longer)
+    return pp.Regex(re.escape(opSymbol) + f"(?!{suffixes})")
+
 for opSymbol, opFunctionName in IN_OPS:
     opGeneration = functools.partial(generate_property_from_inop, opFunctionName)
-    IN_OPS_PYPARSING.append((pp.Literal(opSymbol).suppress(), 2, pp.opAssoc.RIGHT, opGeneration))
+    IN_OPS_PYPARSING.append((_matcher_for(opSymbol).suppress(), 2, pp.opAssoc.RIGHT, opGeneration))
 
 for opSymbol, opFunctionName in UNARY_OPS:
     opGeneration = functools.partial(generate_property_from_inop, opFunctionName)
@@ -74,7 +77,14 @@ redirection = pp.Forward().setParseAction(pack_args(Link))
 
 element_identifier = pp.Literal("[").suppress()+numerical_value+pp.Literal("]").suppress();
 
-multiple_properties = pp.Forward().setParseAction(pack_args(MultiCalculation))
+def generate_multiple_properties_or_group(*tokens):
+    """Brackets around a single calculation are just grouping; more make a MultiCalculation"""
+    if len(tokens)==1:
+        return tokens[0]
+    else:
+        return MultiCalculation(*tokens)
+
+multiple_properties = pp.Forward().setParseAction(pack_args(generate_multiple_properties_or_group))
 
 property_identifier = (redirection | array_element | live_calculation_property | stored_property | multiple_properties)
 
@@ -97,16 +107,32 @@ property_complete = pp.string_start()+value_or_property_name+pp.string_end()
 
 
 def parse_property_name( name):
+    """Parse a string in the live-calculation mini-language into a Calculation"""
     with _parsing_lock:
         return property_complete.parse_string(name)[0]
 
 def parse_property_name_if_required(name):
+    """Return a Calculation for name, whichever way the calculation has been specified.
+
+    The calculation may be given as a string in the mini-language (see
+    parse_property_name), as a lambda taking no arguments (see
+    live_calculation.from_lambda.to_calculation), or as a Calculation object, which is
+    returned unchanged."""
     if isinstance(name, Calculation):
         return name
-    else:
+    elif isinstance(name, str):
         return parse_property_name(name)
+    elif callable(name):
+        return from_lambda.to_calculation(name)
+    else:
+        raise TypeError("A live calculation must be specified as a string, as a lambda "
+                        "taking no arguments, or as a Calculation object "
+                        "(received %r)" % (name,))
 
 def parse_property_names(*names):
-    return MultiCalculation(*[parse_property_name(n) for n in names])
+    """Return a MultiCalculation of the named calculations.
+
+    Each may be a string, a lambda or a Calculation; see parse_property_name_if_required."""
+    return MultiCalculation(*[parse_property_name_if_required(n) for n in names])
 
 __all__ = ["parse_property_name", "parse_property_name_if_required", "parse_property_names"]

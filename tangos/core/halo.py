@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, orm, types
 from sqlalchemy.orm import Session, backref, relationship
@@ -169,7 +171,10 @@ class SimulationObjectBase(Base):
         See the data exploration tutorials at https://pynbody.github.io/tangos/data_exploration.html
         for an introduction to the system.
 
-        :param calculation: the calculation (or a string representation of it to be parsed)
+        :param calculation: the calculation to perform, specified either as a string in
+                            the mini-language, as a lambda taking no arguments
+                            (e.g. lambda: Mvir/Rvir; new in tangos 1.12.0), or as a
+                            Calculation object
         :param return_description: if True, return both the value and the PropertyCalculation class describing it.
         :returns: The result of the calculation, or a tuple containing the result and the description if
                   return_description is True.
@@ -345,8 +350,9 @@ class SimulationObjectBase(Base):
     def calculate_for_descendants(self, *plist, **kwargs):
         """Run the specified calculations on this halo and its descendants
 
-        Each argument is a string (or an instance of live_calculation.Calculation), following the syntax
-        described in live_calculation.md.
+        Each argument is a string following the syntax described in live_calculation.md,
+        or a lambda taking no arguments (e.g. lambda: Mvir/Rvir; new in tangos 1.12.0),
+        or an instance of live_calculation.Calculation.
 
         *kwargs*:
 
@@ -365,23 +371,17 @@ class SimulationObjectBase(Base):
         strategy = kwargs.get('strategy', relation_finding.MultiHopMajorDescendantsStrategy)
         strategy_kwargs = kwargs.get('strategy_kwargs', {})
 
-        if isinstance(plist[0], live_calculation.Calculation):
-            property_description = plist[0]
-        else:
-            property_description = live_calculation.parser.parse_property_names(*plist)
+        property_description = live_calculation.parse_property_list(*plist)
 
-        # must be performed in its own session as we intentionally load in a lot of
-        # objects with incomplete lazy-loaded properties
-        session = Session()
-        try:
+        @contextlib.contextmanager
+        def objects_found_by_strategy(session):
             with strategy(db_query.get_halo(self.id, session), nhops_max=nmax,
                           include_startpoint=True, **strategy_kwargs).temp_table() as tt:
-                raw_query = thl.halo_query(tt)
-                query = property_description.supplement_halo_query(raw_query)
-                results = query.all()
-                return property_description.values_sanitized(results, Session.object_session(self))
-        finally:
-            session.close()
+                yield thl.halo_query(tt), None
+
+        return live_calculation.calculate_over_objects(property_description,
+                                                       objects_found_by_strategy,
+                                                       Session.object_session(self))
 
     def calculate_for_progenitors(self, *plist, **kwargs):
         """Run the specified calculations on the progenitors of this halo
